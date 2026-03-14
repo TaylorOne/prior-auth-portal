@@ -10,6 +10,8 @@ namespace PriorAuthApi.Entities
         public string MemberId { get; set; } = string.Empty;     // Insurance member ID
         public string? Phone { get; set; }
         public string? Email { get; set; }
+
+        public ICollection<Coverage> Coverages { get; set; } = [];
     }
 
     public enum Gender
