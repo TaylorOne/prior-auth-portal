@@ -13,6 +13,7 @@ namespace PriorAuthApi.Data
         public DbSet<Patient> Patients { get; set; }
         public DbSet<Practitioner> Practitioners { get; set; }
         public DbSet<PriorAuthRequest> PriorAuthRequests { get; set; }
+        public DbSet<AuthRule> AuthRules { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

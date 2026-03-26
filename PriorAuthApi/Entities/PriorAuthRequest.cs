@@ -21,6 +21,8 @@ namespace PriorAuthApi.Entities
         public Patient Patient { get; set; } = null!;
         public int PractitionerId { get; set; }
         public Practitioner Practitioner { get; set; } = null!;
+        public int AuthRuleId { get; set; }
+        public AuthRule AuthRule { get; set; } = null!;
     }
 
 }
