@@ -11,12 +11,4 @@ namespace PriorAuthApi.Entities
         public string? Phone { get; set; }
         public string? Email { get; set; }
     }
-
-    public enum Gender
-    {
-        Male,
-        Female,
-        Other,
-        Unknown
-    }
 }

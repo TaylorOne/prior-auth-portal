@@ -23,18 +23,4 @@ namespace PriorAuthApi.Entities
         public Practitioner Practitioner { get; set; } = null!;
     }
 
-    public enum Status
-    {
-        Draft,
-        Pending,
-        Approved,
-        Denied,
-        NeedsMoreInfo
-    }
-
-    public enum RequestType
-    {
-        Medication,
-        Procedure
-    }
 }
