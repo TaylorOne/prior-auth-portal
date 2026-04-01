@@ -23,8 +23,6 @@ namespace PriorAuthApi.Data
                     FormDefinition = """
                     {
                         "fields": [
-                            { "name": "diagnosisCode", "label": "Diagnosis Code", "type": "select",
-                            "options": ["M25.561 - Pain in right knee", "M25.562 - Pain in left knee"] },
                             { "name": "therapyCompleted", "label": "Conservative Therapy Completed", "type": "boolean" },
                             { "name": "therapyDurationWeeks", "label": "Duration of Therapy (weeks)", "type": "number" },
                             { "name": "notes", "label": "Additional Notes", "type": "text", "required": false }
@@ -52,8 +50,6 @@ namespace PriorAuthApi.Data
                     FormDefinition = """
                     {
                         "fields": [
-                            { "name": "diagnosisCode", "label": "Indication Code", "type": "select",
-                            "options": ["Z15.01 - Genetic susceptibility to breast cancer", "Z80.3 - Family history of breast cancer"] },
                             { "name": "familyHistoryConfirmed", "label": "First-Degree Family History Confirmed", "type": "boolean" },
                             { "name": "priorCounselingCompleted", "label": "Prior Genetic Counseling Completed", "type": "boolean" },
                             { "name": "notes", "label": "Additional Notes", "type": "text", "required": false }
@@ -81,8 +77,6 @@ namespace PriorAuthApi.Data
                     FormDefinition = """
                     {
                         "fields": [
-                            { "name": "diagnosisCode", "label": "Diagnosis Code", "type": "select",
-                            "options": ["M06.9 - Rheumatoid arthritis, unspecified", "M05.9 - Seropositive rheumatoid arthritis"] },
                             { "name": "priorDMARDTrial", "label": "Prior DMARD Trial Completed", "type": "boolean" },
                             { "name": "dmardName", "label": "DMARD Medication Name", "type": "select",
                             "options": ["Methotrexate", "Hydroxychloroquine", "Sulfasalazine", "Leflunomide"] },
@@ -112,8 +106,6 @@ namespace PriorAuthApi.Data
                     FormDefinition = """
                     {
                         "fields": [
-                            { "name": "diagnosisCode", "label": "Diagnosis Code", "type": "select",
-                            "options": ["E66.9 - Obesity, unspecified", "E66.01 - Morbid obesity due to excess calories"] },
                             { "name": "bmi", "label": "Current BMI", "type": "number" },
                             { "name": "comorbidity", "label": "Weight-Related Comorbidity Present", "type": "boolean" },
                             { "name": "priorWeightLossProgram", "label": "Prior Supervised Weight Loss Program Completed", "type": "boolean" },
@@ -143,8 +135,6 @@ namespace PriorAuthApi.Data
                     FormDefinition = """
                     {
                         "fields": [
-                            { "name": "diagnosisCode", "label": "Diagnosis Code", "type": "select",
-                            "options": ["I48.91 - Unspecified atrial fibrillation", "I48.19 - Other persistent atrial fibrillation"] },
                             { "name": "priorWarfarinTrial", "label": "Prior Warfarin Trial Completed", "type": "boolean" },
                             { "name": "warfarinDurationWeeks", "label": "Duration of Warfarin Trial (weeks)", "type": "number" },
                             { "name": "reasonForSwitch", "label": "Reason for Transition to Xarelto", "type": "select",
