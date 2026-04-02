@@ -15,6 +15,7 @@ namespace PriorAuthApi.Data
         public DbSet<PriorAuthRequest> PriorAuthRequests { get; set; }
         public DbSet<AuthRule> AuthRules { get; set; }
         public DbSet<MedicationRequest> MedicationRequests { get; set; }
+        public DbSet<Organization> Organizations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
