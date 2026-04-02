@@ -19,8 +19,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    AuthRuleSeeder.Seed(context);
-}
+    await AuthRuleSeeder.SeedAsync(context);
+    await OrganizationSeeder.SeedAsync(context);
+    await PractitionerSeeder.SeedAsync(context);
+}   
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
