@@ -3,9 +3,11 @@ namespace PriorAuthApi.Entities
     public enum Status
     {
         Draft,
-        Pending,
+        Submitted,
+        UnderReview,
         Approved,
         Denied,
-        NeedsMoreInfo
+        NeedsMoreInfo,
+        Cancelled
     }
 }
