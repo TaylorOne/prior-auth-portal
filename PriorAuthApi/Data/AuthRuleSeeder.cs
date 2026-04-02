@@ -1,12 +1,13 @@
+using Microsoft.EntityFrameworkCore;
 using PriorAuthApi.Entities;
 
 namespace PriorAuthApi.Data
 {
     public static class AuthRuleSeeder
     {
-        public static void Seed(AppDbContext context)
+        public static async Task SeedAsync(AppDbContext context)
         {
-            if (context.AuthRules.Any()) return;
+            if (await context.AuthRules.AnyAsync()) return;
 
             context.AuthRules.AddRange(
 
@@ -153,7 +154,7 @@ namespace PriorAuthApi.Data
                 }
             );
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 }
