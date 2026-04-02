@@ -1,22 +1,23 @@
 using System.Text.Json;
+using PriorAuthApi.Entities;
 
-namespace PriorAuthApi.Entities
+namespace PriorAuthApi.DTOs
 {
-    public class AuthRuleResponse
+    public record AuthRuleResponseDto
     {
-        public int Id { get; set; }
-        public RequestType RequestType { get; set; }
-        public string CodeSystem { get; set; } = default!;
-        public string Code { get; set; } = default!;
-        public string? IndicationCode { get; set; }
-        public string DisplayName { get; set; } = default!;
-        public JsonElement FormDefinition { get; set; }
-        public JsonElement RuleDefinition { get; set; }
-        public bool IsActive { get; set; }
-        public DateOnly EffectiveDate { get; set; }
-        public DateOnly CreatedAt { get; set; }
+        public int Id { get; init; }
+        public RequestType RequestType { get; init; }
+        public string CodeSystem { get; init; } = default!;
+        public string Code { get; init; } = default!;
+        public string? IndicationCode { get; init; }
+        public string DisplayName { get; init; } = default!;
+        public JsonElement FormDefinition { get; init; }
+        public JsonElement RuleDefinition { get; init; }
+        public bool IsActive { get; init; }
+        public DateOnly EffectiveDate { get; init; }
+        public DateOnly CreatedAt { get; init; }
 
-        public static AuthRuleResponse FromEntity(AuthRule rule) => new()
+        public static AuthRuleResponseDto FromEntity(AuthRule rule) => new()
         {
             Id = rule.Id,
             RequestType = rule.RequestType,

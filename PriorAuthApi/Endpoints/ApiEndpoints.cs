@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PriorAuthApi.Data;
-using PriorAuthApi.Entities;
+using PriorAuthApi.DTOs;
 
 namespace PriorAuthApi.Endpoints
 {
@@ -14,7 +14,7 @@ namespace PriorAuthApi.Endpoints
                     .Where(r => r.Code == code && r.IndicationCode == indicationCode && r.IsActive)
                     .FirstOrDefaultAsync();
 
-                return authRule is not null ? Results.Ok(AuthRuleResponse.FromEntity(authRule)) : Results.NotFound();
+                return authRule is not null ? Results.Ok(AuthRuleResponseDto.FromEntity(authRule)) : Results.NotFound();
             });
 
         }

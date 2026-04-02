@@ -14,6 +14,7 @@ namespace PriorAuthApi.Data
         public DbSet<Practitioner> Practitioners { get; set; }
         public DbSet<PriorAuthRequest> PriorAuthRequests { get; set; }
         public DbSet<AuthRule> AuthRules { get; set; }
+        public DbSet<MedicationRequest> MedicationRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,10 +26,6 @@ namespace PriorAuthApi.Data
 
             modelBuilder.Entity<PriorAuthRequest>()
                 .Property(p => p.Status)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<PriorAuthRequest>()
-                .Property(p => p.RequestType)
                 .HasConversion<string>();
         }
     }
