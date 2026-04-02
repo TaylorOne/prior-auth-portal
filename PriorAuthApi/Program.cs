@@ -22,6 +22,7 @@ using (var scope = app.Services.CreateScope())
     await AuthRuleSeeder.SeedAsync(context);
     await OrganizationSeeder.SeedAsync(context);
     await PractitionerSeeder.SeedAsync(context);
+    await PatientSeeder.SeedAsync(context);
 }   
 
 // Configure the HTTP request pipeline.
