@@ -9,8 +9,6 @@ namespace PriorAuthApi.Endpoints
     {
         public static void MapAuthRuleEndpoints(this IEndpointRouteBuilder app)
         {
-
-
             app.MapGet("/authrules/{code}/{indicationCode}", async (AppDbContext db, string code, string indicationCode) =>
             {
                 var authRule = await db.AuthRules
@@ -19,6 +17,30 @@ namespace PriorAuthApi.Endpoints
 
                 return authRule is not null ? Results.Ok(AuthRuleResponseDto.FromEntity(authRule)) : Results.NotFound();
             });
+
+            app.MapGet("/priorauth", async (AppDbContext db) =>
+            {
+                var requests = await db.PriorAuthRequests
+                    .Include(r => r.Patient)
+                    .Include(r => r.Practitioner)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .Select(r => new PriorAuthSummaryDto(
+                        r.Id,
+                        r.Status.ToString(),
+                        r.Priority,
+                        r.ServiceCode,
+                        r.ServiceCodeDisplay ?? r.ServiceCode,
+                        $"{r.Patient.FirstName} {r.Patient.LastName}",
+                        $"Dr. {r.Practitioner.FirstName} {r.Practitioner.LastName}",
+                        r.Practitioner.Specialty,
+                        r.CreatedAt,
+                        r.DeterminationDate
+                    ))
+                    .ToListAsync();
+
+                return Results.Ok(requests);
+            })
+            .WithName("GetPriorAuthRequests");
 
             app.MapPost("/priorauth", async (AppDbContext db, SubmitPriorAuthDto dto) =>
             {
