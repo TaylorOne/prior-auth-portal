@@ -22,7 +22,7 @@ namespace PriorAuthApi.Endpoints
             {
                 var codes = await db.AuthRules
                     .Where(r => r.IsActive)
-                    .Select(r => new { r.Code, r.IndicationCode })
+                    .Select(r => new { r.Code, r.DisplayName })
                     .Distinct()
                     .ToListAsync();
 
