@@ -7,9 +7,7 @@ namespace PriorAuthApi.Data
     {
         public static async Task SeedAsync(AppDbContext context)
         {
-            if (await context.AuthRules.AnyAsync()) return;
-
-            context.AuthRules.AddRange(
+            var rules = new List<AuthRule> {
 
                 // MRI Knee
                 new AuthRule
@@ -38,7 +36,7 @@ namespace PriorAuthApi.Data
                     """
                 },
 
-                // Genetic Testing
+                // Genetic Testing - Hereditary Breast/Ovarian Cancer (BRCA1/BRCA2)
                 new AuthRule
                 {
                     RequestType = RequestType.Procedure,
@@ -65,7 +63,7 @@ namespace PriorAuthApi.Data
                     """
                 },
 
-                // Humira
+                // Humira - Rheumatoid Arthritis
                 new AuthRule
                 {
                     RequestType = RequestType.Medication,
@@ -94,7 +92,7 @@ namespace PriorAuthApi.Data
                     """
                 },
 
-                // Wegovy
+                // Wegovy - Chronic Weight Management
                 new AuthRule
                 {
                     RequestType = RequestType.Medication,
@@ -123,7 +121,7 @@ namespace PriorAuthApi.Data
                     """
                 },
 
-                // Xarelto
+                // Xarelto - Atrial Fibrillation
                 new AuthRule
                 {
                     RequestType = RequestType.Medication,
@@ -151,8 +149,142 @@ namespace PriorAuthApi.Data
                         "reasonForSwitchRequired": true
                     }
                     """
+                },
+
+                // Humira - Psoriatic Arthritis
+                new AuthRule
+                {
+                    RequestType = RequestType.Medication,
+                    CodeSystem = "HCPCS",
+                    Code = "J0135",
+                    IndicationCode = "L40.50",
+                    DisplayName = "Humira (adalimumab) - Psoriatic Arthritis",
+                    IsActive = true,
+                    EffectiveDate = new DateOnly(2024, 1, 1),
+                    FormDefinition = """
+                    {
+                        "fields": [
+                            { "name": "priorNSAIDTrial", "label": "Prior NSAID Trial Completed", "type": "boolean" },
+                            { "name": "nsaidDurationWeeks", "label": "Duration of NSAID Trial (weeks)", "type": "number" },
+                            { "name": "jointsAffected", "label": "Number of Affected Joints", "type": "number" },
+                            { "name": "dermatologyConfirmed", "label": "Diagnosis Confirmed by Rheumatologist or Dermatologist", "type": "boolean" },
+                            { "name": "notes", "label": "Additional Notes", "type": "text", "required": false }
+                        ]
+                    }
+                    """,
+                    RuleDefinition = """
+                    {
+                        "priorNSAIDRequired": true,
+                        "minNSAIDWeeks": 4,
+                        "specialistConfirmationRequired": true
+                    }
+                    """
+                },
+
+                // Humira - Crohn's Disease
+                new AuthRule
+                {
+                    RequestType = RequestType.Medication,
+                    CodeSystem = "HCPCS",
+                    Code = "J0135",
+                    IndicationCode = "K50.90",
+                    DisplayName = "Humira (adalimumab) - Crohn's Disease",
+                    IsActive = true,
+                    EffectiveDate = new DateOnly(2024, 1, 1),
+                    FormDefinition = """
+                    {
+                        "fields": [
+                            { "name": "priorCorticosteroidTrial", "label": "Prior Corticosteroid Trial Completed", "type": "boolean" },
+                            { "name": "priorImmunomodulatorTrial", "label": "Prior Immunomodulator Trial Completed", "type": "boolean" },
+                            { "name": "immunomodulatorName", "label": "Immunomodulator Medication Name", "type": "select",
+                            "options": ["Azathioprine", "6-Mercaptopurine", "Methotrexate"] },
+                            { "name": "diseaseClassification", "label": "Disease Classification", "type": "select",
+                            "options": ["Mild", "Moderate", "Severe"] },
+                            { "name": "notes", "label": "Additional Notes", "type": "text", "required": false }
+                        ]
+                    }
+                    """,
+                    RuleDefinition = """
+                    {
+                        "priorCorticosteroidRequired": true,
+                        "priorImmunomodulatorRequired": true,
+                        "minimumDiseaseClassification": "Moderate"
+                    }
+                    """
+                },
+
+                // Xarelto - DVT
+                new AuthRule
+                {
+                    RequestType = RequestType.Medication,
+                    CodeSystem = "RxNorm",
+                    Code = "1599538",
+                    IndicationCode = "I82.401",
+                    DisplayName = "Xarelto (rivaroxaban) - Deep Vein Thrombosis",
+                    IsActive = true,
+                    EffectiveDate = new DateOnly(2024, 1, 1),
+                    FormDefinition = """
+                    {
+                        "fields": [
+                            { "name": "dvtConfirmed", "label": "DVT Confirmed by Imaging", "type": "boolean" },
+                            { "name": "imagingType", "label": "Confirmatory Imaging Type", "type": "select",
+                            "options": ["Duplex Ultrasound", "CT Venography", "MR Venography"] },
+                            { "name": "priorHeparinBridge", "label": "Prior Heparin Bridge Therapy Completed", "type": "boolean" },
+                            { "name": "estimatedTreatmentDurationWeeks", "label": "Estimated Treatment Duration (weeks)", "type": "number" },
+                            { "name": "notes", "label": "Additional Notes", "type": "text", "required": false }
+                        ]
+                    }
+                    """,
+                    RuleDefinition = """
+                    {
+                        "imagingConfirmationRequired": true,
+                        "priorHeparinRequired": true,
+                        "minTreatmentWeeks": 12
+                    }
+                    """
+                },
+
+                // Ozempic - Type 2 Diabetes
+                new AuthRule
+                {
+                    RequestType = RequestType.Medication,
+                    CodeSystem = "HCPCS",
+                    Code = "J3101",
+                    IndicationCode = "E11.9",
+                    DisplayName = "Ozempic (semaglutide) - Type 2 Diabetes",
+                    IsActive = true,
+                    EffectiveDate = new DateOnly(2024, 1, 1),
+                    FormDefinition = """
+                    {
+                        "fields": [
+                            { "name": "hba1c", "label": "Most Recent HbA1c (%)", "type": "number" },
+                            { "name": "priorMetforminTrial", "label": "Prior Metformin Trial Completed", "type": "boolean" },
+                            { "name": "metforminDurationWeeks", "label": "Duration of Metformin Trial (weeks)", "type": "number" },
+                            { "name": "metforminContraindicated", "label": "Metformin Contraindicated", "type": "boolean" },
+                            { "name": "diabetesEducationCompleted", "label": "Diabetes Self-Management Education Completed", "type": "boolean" },
+                            { "name": "notes", "label": "Additional Notes", "type": "text", "required": false }
+                        ]
+                    }
+                    """,
+                    RuleDefinition = """
+                    {
+                        "minHba1c": 7.0,
+                        "priorMetforminRequired": true,
+                        "metforminContraindicationExcused": true,
+                        "minMetforminWeeks": 12
+                    }
+                    """
                 }
-            );
+            };
+
+            foreach (var rule in rules)
+            {
+                var exists = await context.AuthRules
+                    .AnyAsync(r => r.Code == rule.Code && r.IndicationCode == rule.IndicationCode);
+                
+                if (!exists)
+                    context.AuthRules.Add(rule);
+            }
 
             await context.SaveChangesAsync();
         }
