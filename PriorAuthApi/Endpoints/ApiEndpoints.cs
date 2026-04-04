@@ -108,6 +108,23 @@ namespace PriorAuthApi.Endpoints
                 return Results.Created($"/priorauth/{request.Id}", new { request.Id });
             })
             .WithName("SubmitPriorAuth");
+
+            app.MapGet("/patients", async (AppDbContext db) =>
+            {
+                var patients = await db.Patients
+                    .Select(p => new PatientSummaryDto(
+                        p.Id,
+                        $"{p.FirstName} {p.LastName}",
+                        DateTime.UtcNow.Year - p.DateOfBirth.Year -
+                            (new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime.UtcNow.Day) 
+                                < p.DateOfBirth ? 1 : 0),
+                        p.Gender.ToString()
+                    ))
+                    .ToListAsync();
+
+                return Results.Ok(patients);
+            })
+            .WithName("GetPatients");
         }
     }
 }
