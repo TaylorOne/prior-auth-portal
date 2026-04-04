@@ -30,6 +30,17 @@ namespace PriorAuthApi.Endpoints
             })
             .WithName("GetAuthRuleCodes");
 
+            app.MapGet("/authrules/{code}/indications", async (AppDbContext db, string code) =>
+            {
+                var indications = await db.AuthRules
+                    .Where(r => r.Code == code && r.IsActive)
+                    .Select(r => new IndicationDto(r.IndicationCode, r.IndicationDisplayName))
+                    .ToListAsync();
+
+                return Results.Ok(indications);
+            })
+            .WithName("GetAuthRuleIndications");
+
             app.MapGet("/priorauth", async (AppDbContext db) =>
             {
                 var requests = await db.PriorAuthRequests
