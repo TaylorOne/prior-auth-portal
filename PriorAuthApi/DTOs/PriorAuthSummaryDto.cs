@@ -1,7 +1,7 @@
 namespace PriorAuthApi.DTOs
 {
     public record PriorAuthSummaryDto(
-    int Id,
+        int Id,
         string Status,
         string Priority,
         string ServiceCode,
