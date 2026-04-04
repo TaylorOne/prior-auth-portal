@@ -8,6 +8,7 @@ namespace PriorAuthApi.Entities
         public required string Code { get; set; }
         public string? IndicationCode { get; set; }  // ICD-10 code for the indication
         public required string DisplayName { get; set; }
+        public string? IndicationDisplayName { get; set; }
         public required string FormDefinition { get; set; }       // JSON array
         public required string RuleDefinition { get; set; }       // JSON array
         public bool IsActive { get; set; }

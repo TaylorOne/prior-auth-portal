@@ -17,6 +17,7 @@ namespace PriorAuthApi.Data
                     Code = "73721",
                     IndicationCode = "M25.561",
                     DisplayName = "MRI Knee without Contrast",
+                    IndicationDisplayName = "Knee pain",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
@@ -43,7 +44,8 @@ namespace PriorAuthApi.Data
                     CodeSystem = "CPT",
                     Code = "81162",
                     IndicationCode = "Z15.01",
-                    DisplayName = "Genetic Testing - Hereditary Breast/Ovarian Cancer (BRCA1/BRCA2)",
+                    DisplayName = "Genetic Testing",
+                    IndicationDisplayName = "Hereditary Breast/Ovarian Cancer (BRCA1/BRCA2)",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
@@ -70,7 +72,8 @@ namespace PriorAuthApi.Data
                     CodeSystem = "HCPCS",
                     Code = "J0135",
                     IndicationCode = "M06.9",
-                    DisplayName = "Humira (adalimumab) - Rheumatoid Arthritis",
+                    DisplayName = "Humira (adalimumab)",
+                    IndicationDisplayName = "Rheumatoid Arthritis",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
@@ -99,7 +102,8 @@ namespace PriorAuthApi.Data
                     CodeSystem = "HCPCS",
                     Code = "J3490",
                     IndicationCode = "E66.9",
-                    DisplayName = "Wegovy (semaglutide) - Chronic Weight Management",
+                    DisplayName = "Wegovy (semaglutide)",
+                    IndicationDisplayName = "Chronic Weight Management",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
@@ -128,7 +132,8 @@ namespace PriorAuthApi.Data
                     CodeSystem = "RxNorm",
                     Code = "1599538",
                     IndicationCode = "I48.91",
-                    DisplayName = "Xarelto (rivaroxaban) - Atrial Fibrillation",
+                    DisplayName = "Xarelto (rivaroxaban)",
+                    IndicationDisplayName = "Atrial Fibrillation",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
@@ -158,7 +163,8 @@ namespace PriorAuthApi.Data
                     CodeSystem = "HCPCS",
                     Code = "J0135",
                     IndicationCode = "L40.50",
-                    DisplayName = "Humira (adalimumab) - Psoriatic Arthritis",
+                    DisplayName = "Humira (adalimumab)",
+                    IndicationDisplayName = "Psoriatic Arthritis",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
@@ -188,7 +194,8 @@ namespace PriorAuthApi.Data
                     CodeSystem = "HCPCS",
                     Code = "J0135",
                     IndicationCode = "K50.90",
-                    DisplayName = "Humira (adalimumab) - Crohn's Disease",
+                    DisplayName = "Humira (adalimumab)",
+                    IndicationDisplayName = "Crohn's Disease",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
@@ -220,7 +227,8 @@ namespace PriorAuthApi.Data
                     CodeSystem = "RxNorm",
                     Code = "1599538",
                     IndicationCode = "I82.401",
-                    DisplayName = "Xarelto (rivaroxaban) - Deep Vein Thrombosis",
+                    DisplayName = "Xarelto (rivaroxaban)",
+                    IndicationDisplayName = "Deep Vein Thrombosis",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
@@ -251,7 +259,8 @@ namespace PriorAuthApi.Data
                     CodeSystem = "HCPCS",
                     Code = "J3101",
                     IndicationCode = "E11.9",
-                    DisplayName = "Ozempic (semaglutide) - Type 2 Diabetes",
+                    DisplayName = "Ozempic (semaglutide)",
+                    IndicationDisplayName = "Type 2 Diabetes",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """

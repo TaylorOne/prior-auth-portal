@@ -17,6 +17,18 @@ namespace PriorAuthApi.Endpoints
 
                 return authRule is not null ? Results.Ok(AuthRuleResponseDto.FromEntity(authRule)) : Results.NotFound();
             });
+            
+            app.MapGet("/authrules/codes", async (AppDbContext db) =>
+            {
+                var codes = await db.AuthRules
+                    .Where(r => r.IsActive)
+                    .Select(r => new { r.Code, r.IndicationCode })
+                    .Distinct()
+                    .ToListAsync();
+
+                return Results.Ok(codes);
+            })
+            .WithName("GetAuthRuleCodes");
 
             app.MapGet("/priorauth", async (AppDbContext db) =>
             {
@@ -125,6 +137,7 @@ namespace PriorAuthApi.Endpoints
                 return Results.Ok(patients);
             })
             .WithName("GetPatients");
+
         }
     }
 }
