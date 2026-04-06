@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getPatients, getServiceCodes, getIndications } from "../api/PriorAuthApi";
+import { getPatients, getServiceCodes, getIndications, getAuthRuleForServiceCode, submitPriorAuthRequest } from "../api/PriorAuthApi";
 import type { Patient } from "../types/Patient";
 import type { ServiceCode } from "@/types/ServiceCode";
 import type { Indication } from "@/types/Indication";
+import type { FormField } from "@/types/AuthRule";
+import type { AuthRequest } from "@/types/AuthRequest";
 import { submitPARequestSchema, type SubmitPARequestFormValues } from "@/schemas/submitPARequest";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,9 @@ export default function SubmitPARequest() {
   const [loadingForm, setLoadingForm] = useState(true);
   const [loadingIndications, setLoadingIndications] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
+  const [dynamicValues, setDynamicValues] = useState<Record<string, string | number | boolean>>({});
+  const [requestType, setRequestType] = useState<"Service" | "Medication" | null>(null);
 
   const {
     register,
@@ -24,10 +29,11 @@ export default function SubmitPARequest() {
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<SubmitPARequestFormValues>({
-    resolver: zodResolver(submitPARequestSchema),
+    resolver: zodResolver<any, SubmitPARequestFormValues, any>(submitPARequestSchema),
   });
 
   const selectedServiceCode = watch("serviceCode");
+  const selectedIndicationCode = watch("indicationCode");
 
   useEffect(() => {
     Promise.all([getPatients(), getServiceCodes()])
@@ -42,10 +48,15 @@ export default function SubmitPARequest() {
   useEffect(() => {
     if (!selectedServiceCode) {
       setIndications([]);
+      setDynamicFields([]);
+      setDynamicValues({});
+      setRequestType(null);
       return;
     }
     setLoadingIndications(true);
     setValue("indicationCode", "");
+    setDynamicFields([]);
+    setDynamicValues({});
     getIndications(selectedServiceCode)
       .then((results) => {
         setIndications(results);
@@ -57,9 +68,82 @@ export default function SubmitPARequest() {
       .finally(() => setLoadingIndications(false));
   }, [selectedServiceCode, setValue]);
 
+  useEffect(() => {
+    if (!selectedServiceCode || !selectedIndicationCode) {
+      setDynamicFields([]);
+      setDynamicValues({});
+      setRequestType(null);
+      return;
+    }
+    getAuthRuleForServiceCode(selectedServiceCode, selectedIndicationCode)
+      .then((rule) => {
+        console.log("Fetched auth rule:", rule);
+        const fields = rule.formDefinition.fields;
+        setRequestType(rule.requestType);
+        const baseValues = Object.fromEntries(fields.map((f) => [f.name, f.type === "boolean" ? false : ""]));
+        if (rule.requestType === "Medication") {
+          const medicationFields: FormField[] = [
+            { name: "dosageInstructionText", label: "Dosage Instructions", type: "text" },
+            { name: "quantityValue", label: "Quantity", type: "number" },
+            { name: "quantityUnit", label: "Quantity Unit", type: "text" },
+            { name: "numberOfRepeatsAllowed", label: "Refills Allowed", type: "number" },
+            { name: "expectedSupplyDurationDays", label: "Days Supply", type: "number" },
+          ];
+          setDynamicFields([...fields, ...medicationFields]);
+          setDynamicValues({
+            ...baseValues,
+            dosageInstructionText: "",
+            quantityValue: "",
+            quantityUnit: "",
+            numberOfRepeatsAllowed: "",
+            expectedSupplyDurationDays: "",
+          });
+        } else {
+          setDynamicFields(fields);
+          setDynamicValues(baseValues);
+        }
+      })
+      .catch(() => {
+        setDynamicFields([]);
+        setDynamicValues({});
+        setRequestType(null);
+      });
+  }, [selectedServiceCode, selectedIndicationCode]);
+
   const onSubmit = async (data: SubmitPARequestFormValues) => {
-    console.log("Submit:", data);
-    // TODO: wire up POST endpoint
+    const request: AuthRequest = {
+        patientId: data.patientId,
+        practitionerId: 1, // Hardcoded for demo purposes
+        priority: "routine", // Hardcoded for demo purposes
+        code: {
+            code: data.serviceCode,
+            system: serviceCodes.find(s => s.code === data.serviceCode)?.system ?? "",
+            display: serviceCodes.find(s => s.code === data.serviceCode)?.displayName || data.serviceCode,
+        },
+        reasonCode: [{ code: data.indicationCode }],
+        clinicalData: dynamicValues,
+        medicationRequest: requestType === "Medication" ? {
+            medication: {
+                code: data.serviceCode,
+                system: serviceCodes.find(s => s.code === data.serviceCode)?.system ?? "",
+                display: serviceCodes.find(s => s.code === data.serviceCode)?.displayName || data.serviceCode,
+            },
+            dosageInstructionText: dynamicValues["dosageInstructionText"] as string,
+            quantityValue: typeof dynamicValues["quantityValue"] === "number" ? dynamicValues["quantityValue"] as number : undefined,
+            quantityUnit: dynamicValues["quantityUnit"] as string,
+            numberOfRepeatsAllowed: typeof dynamicValues["numberOfRepeatsAllowed"] === "number" ? dynamicValues["numberOfRepeatsAllowed"] as number : undefined,
+            expectedSupplyDurationDays: typeof dynamicValues["expectedSupplyDurationDays"] === "number" ? dynamicValues["expectedSupplyDurationDays"] as number : undefined,
+        } : undefined,
+    };
+
+    console.log("Submit:", { ...data, formData: dynamicValues });
+    try {
+      await submitPriorAuthRequest(request);
+      alert("Prior auth request submitted successfully!");
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Failed to submit prior auth request.");
+    }
   };
 
   if (loadingForm) return <p className="p-6 text-sm text-muted-foreground">Loading...</p>;
@@ -141,6 +225,59 @@ export default function SubmitPARequest() {
                 <p className="text-xs text-destructive">{errors.indicationCode.message}</p>
               )}
             </div>
+
+            {/* Dynamic fields from formDefinition */}
+            {dynamicFields.map((field) => (
+              <div key={field.name} className="space-y-1">
+                <label className="text-sm font-medium" htmlFor={field.name}>
+                  {field.label}
+                  {field.required === false && <span className="text-muted-foreground ml-1">(optional)</span>}
+                </label>
+
+                {field.type === "boolean" && (
+                  <input
+                    id={field.name}
+                    type="checkbox"
+                    className="ml-2"
+                    checked={dynamicValues[field.name] as boolean}
+                    onChange={(e) =>
+                      setDynamicValues((prev) => ({ ...prev, [field.name]: e.target.checked }))
+                    }
+                  />
+                )}
+
+                {field.type === "select" && (
+                  <select
+                    id={field.name}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={dynamicValues[field.name] as string}
+                    onChange={(e) =>
+                      setDynamicValues((prev) => ({ ...prev, [field.name]: e.target.value }))
+                    }
+                  >
+                    <option value="" disabled>Select…</option>
+                    {field.options?.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                )}
+
+                {(field.type === "text" || field.type === "number") && (
+                  <input
+                    id={field.name}
+                    type={field.type}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={dynamicValues[field.name] as string}
+                    onChange={(e) =>
+                      setDynamicValues((prev) => ({
+                        ...prev,
+                        [field.name]: field.type === "number" ? e.target.valueAsNumber : e.target.value,
+                      }))
+                    }
+                  />
+                )}
+              </div>
+            ))}
 
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Submitting…" : "Submit Request"}

@@ -1,7 +1,9 @@
-import type { PriorAuthSummary } from "../types/PriorAuth";
-import type { Patient } from "../types/Patient";
+import type { PriorAuthSummary } from "@/types/PriorAuth";
+import type { Patient } from "@/types/Patient";
 import type { ServiceCode } from "@/types/ServiceCode";
 import type { Indication } from "@/types/Indication";
+import type { AuthRule } from "@/types/AuthRule";
+import type { AuthRequest } from "@/types/AuthRequest";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5054";
 
@@ -29,9 +31,22 @@ export async function getIndications(serviceCode: string): Promise<Indication[]>
   return response.json();
 }
 
-export async function getAuthRuleForServiceCode(serviceCode: string) {
-  const response = await fetch(`${BASE_URL}/authrules/${encodeURIComponent(serviceCode)}/`);
+export async function getAuthRuleForServiceCode(serviceCode: string, indicationCode: string): Promise<AuthRule> {
+  const response = await fetch(`${BASE_URL}/authrules/${encodeURIComponent(serviceCode)}/${encodeURIComponent(indicationCode)}`);
   if (!response.ok) throw new Error("Failed to fetch auth rule for service code");
   return response.json();
 }
 
+export async function submitPriorAuthRequest(priorAuthRequest: AuthRequest): Promise<AuthRequest> {
+  console.log("Submitting prior auth request...");
+  console.log(priorAuthRequest);
+  const response = await fetch(`${BASE_URL}/priorauth`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(priorAuthRequest),
+  });
+  if (!response.ok) throw new Error("Failed to submit prior auth request");
+  return response.json();
+}
