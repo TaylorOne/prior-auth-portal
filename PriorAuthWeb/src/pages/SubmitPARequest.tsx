@@ -7,7 +7,8 @@ import type { ServiceCode } from "@/types/ServiceCode";
 import type { Indication } from "@/types/Indication";
 import type { FormField } from "@/types/AuthRule";
 import type { AuthRequest } from "@/types/AuthRequest";
-import { submitPARequestSchema, type SubmitPARequestFormValues } from "@/schemas/submitPARequest";
+import { z } from "zod";
+import { submitPARequestSchema, buildDynamicFieldSchema, type SubmitPARequestFormValues } from "@/schemas/submitPARequest";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +21,7 @@ export default function SubmitPARequest() {
   const [formError, setFormError] = useState<string | null>(null);
   const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
   const [dynamicValues, setDynamicValues] = useState<Record<string, string | number | boolean>>({});
+  const [dynamicErrors, setDynamicErrors] = useState<Record<string, string>>({});
   const [requestType, setRequestType] = useState<"Service" | "Medication" | null>(null);
 
   const {
@@ -57,6 +59,7 @@ export default function SubmitPARequest() {
     setValue("indicationCode", "");
     setDynamicFields([]);
     setDynamicValues({});
+    setDynamicErrors({});
     getIndications(selectedServiceCode)
       .then((results) => {
         setIndications(results);
@@ -80,37 +83,35 @@ export default function SubmitPARequest() {
         console.log("Fetched auth rule:", rule);
         const fields = rule.formDefinition.fields;
         setRequestType(rule.requestType);
-        const baseValues = Object.fromEntries(fields.map((f) => [f.name, f.type === "boolean" ? false : ""]));
-        if (rule.requestType === "Medication") {
-          const medicationFields: FormField[] = [
-            { name: "dosageInstructionText", label: "Dosage Instructions", type: "text" },
-            { name: "quantityValue", label: "Quantity", type: "number" },
-            { name: "quantityUnit", label: "Quantity Unit", type: "text" },
-            { name: "numberOfRepeatsAllowed", label: "Refills Allowed", type: "number" },
-            { name: "expectedSupplyDurationDays", label: "Days Supply", type: "number" },
-          ];
-          setDynamicFields([...fields, ...medicationFields]);
-          setDynamicValues({
-            ...baseValues,
-            dosageInstructionText: "",
-            quantityValue: "",
-            quantityUnit: "",
-            numberOfRepeatsAllowed: "",
-            expectedSupplyDurationDays: "",
-          });
-        } else {
-          setDynamicFields(fields);
-          setDynamicValues(baseValues);
-        }
+        const allFields = rule.requestType === "Medication"
+          ? [...fields, ...(rule.formDefinition.medicationFields ?? [])]
+          : fields;
+        setDynamicFields(allFields);
+        setDynamicValues(Object.fromEntries(
+          allFields.map((f) => [f.name, f.defaultValue ?? (f.type === "boolean" ? false : "")])
+        ));
+        setDynamicErrors({});
       })
       .catch(() => {
         setDynamicFields([]);
         setDynamicValues({});
+        setDynamicErrors({});
         setRequestType(null);
       });
   }, [selectedServiceCode, selectedIndicationCode]);
 
   const onSubmit = async (data: SubmitPARequestFormValues) => {
+    const dynamicValidation = buildDynamicFieldSchema(dynamicFields).safeParse(dynamicValues);
+    if (!dynamicValidation.success) {
+      const errors: Record<string, string> = {};
+      for (const [key, issues] of Object.entries(z.flattenError(dynamicValidation.error).fieldErrors)) {
+        errors[key] = issues?.[0] ?? "Invalid value";
+      }
+      setDynamicErrors(errors);
+      return;
+    }
+    setDynamicErrors({});
+
     const request: AuthRequest = {
         patientId: data.patientId,
         practitionerId: 1, // Hardcoded for demo purposes
@@ -231,7 +232,7 @@ export default function SubmitPARequest() {
               <div key={field.name} className="space-y-1">
                 <label className="text-sm font-medium" htmlFor={field.name}>
                   {field.label}
-                  {field.required === false && <span className="text-muted-foreground ml-1">(optional)</span>}
+                  {!field.validation.required && <span className="text-muted-foreground ml-1">(optional)</span>}
                 </label>
 
                 {field.type === "boolean" && (
@@ -256,7 +257,7 @@ export default function SubmitPARequest() {
                     }
                   >
                     <option value="" disabled>Select…</option>
-                    {field.options?.map((opt) => (
+                    {field.options?.map((opt: string) => (
                       <option key={opt} value={opt}>{opt}</option>
                     ))}
                   </select>
@@ -275,6 +276,10 @@ export default function SubmitPARequest() {
                       }))
                     }
                   />
+                )}
+
+                {dynamicErrors[field.name] && (
+                  <p className="text-xs text-destructive">{dynamicErrors[field.name]}</p>
                 )}
               </div>
             ))}

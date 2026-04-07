@@ -5,11 +5,22 @@ export interface FormField {
     label: string;
     type: FormFieldType;
     options?: string[];
-    required?: boolean;
+    validation: ValidationRules;
+    defaultValue?: string | number;
+    editable?: boolean;
+}
+
+export interface ValidationRules {
+    required: boolean;
+    maxLength?: number;
+    min?: number;
+    max?: number;
+    integer?: boolean;
 }
 
 export interface FormDefinition {
     fields: FormField[];
+    medicationFields?: FormField[]; // Optional fields specific to medication requests
 }
 
 export interface AuthRule {
