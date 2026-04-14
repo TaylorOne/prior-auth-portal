@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PriorAuthApi.Data;
 using PriorAuthApi.Entities;
 using PriorAuthApi.DTOs;
+using PriorAuthApi.Validators;
 
 namespace PriorAuthApi.Endpoints
 {
@@ -67,9 +68,32 @@ namespace PriorAuthApi.Endpoints
 
             app.MapPost("/priorauth", async (AppDbContext db, SubmitPriorAuthDto dto) =>
             {
-                if (dto.ReasonCode is null || !dto.ReasonCode.Any())
+                if (dto.Code == null || string.IsNullOrEmpty(dto.Code.Code))
                 {
-                    return Results.BadRequest("At least one reason code must be provided.");
+                    return Results.BadRequest("Service code is required.");
+                }
+
+                if (dto.ReasonCode == null || !dto.ReasonCode.Any())
+                {
+                    return Results.BadRequest("At least one reason code is required.");
+                }
+
+                var indicationCode = dto.ReasonCode[0];
+
+                var authRule = await db.AuthRules
+                    .Where(r => r.Code == dto.Code.Code && r.IndicationCode == indicationCode && r.IsActive)
+                    .FirstOrDefaultAsync();
+
+                if (authRule is null)
+                {
+                    return Results.BadRequest("No applicable authorization rule found for the provided code and indication.");
+                }
+
+                var result = new PriorAuthRequestValidator(authRule).Validate(dto);
+                if (!result.IsValid)
+                {
+                    var errors = result.Errors.Select(e => e.ErrorMessage).ToList();
+                    return Results.BadRequest(new { Errors = errors });
                 }
 
                 var patientExists = await db.Patients.AnyAsync(p => p.Id == dto.PatientId);
@@ -81,17 +105,6 @@ namespace PriorAuthApi.Endpoints
                 if (!practitionerExists)
                 {
                     return Results.BadRequest($"Practitioner with ID {dto.PractitionerId} does not exist.");
-                }
-
-                var indicationCode = dto.ReasonCode[0].Code;
-
-                var authRule = await db.AuthRules
-                    .Where(r => r.Code == dto.Code.Code && r.IndicationCode == indicationCode && r.IsActive)
-                    .FirstOrDefaultAsync();
-
-                if (authRule is null)
-                {
-                    return Results.BadRequest("No applicable authorization rule found for the provided code and indication.");
                 }
 
                 var request = new PriorAuthRequest

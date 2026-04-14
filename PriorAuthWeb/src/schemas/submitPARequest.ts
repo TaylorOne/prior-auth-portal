@@ -16,7 +16,7 @@ export function buildDynamicFieldSchema(fields: FormField[]) {
         if (field.type === "boolean") {
             shape[field.name] = z.boolean();
         } else if (field.type === "number") {
-            let schema: z.ZodNumber = z.number({ invalid_type_error: `${field.label} must be a number` });
+            let schema: z.ZodNumber = z.number({ error: `${field.label} must be a number` });
             if (min !== undefined) schema = schema.min(min, `${field.label} must be at least ${min}`);
             if (max !== undefined) schema = schema.max(max, `${field.label} must be at most ${max}`);
             if (integer) schema = schema.int(`${field.label} must be a whole number`);

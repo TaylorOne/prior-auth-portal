@@ -15,8 +15,8 @@ namespace PriorAuthApi.Data
                     RequestType = RequestType.Procedure,
                     CodeSystem = "CPT",
                     Code = "73721",
-                    IndicationCode = "M25.561",
                     DisplayName = "MRI Knee without Contrast",
+                    IndicationCode = "M25.561",
                     IndicationDisplayName = "Knee pain",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
@@ -58,8 +58,8 @@ namespace PriorAuthApi.Data
                     RequestType = RequestType.Procedure,
                     CodeSystem = "CPT",
                     Code = "81162",
-                    IndicationCode = "Z15.01",
                     DisplayName = "Genetic Testing",
+                    IndicationCode = "Z15.01",
                     IndicationDisplayName = "Hereditary Breast/Ovarian Cancer (BRCA1/BRCA2)",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
@@ -101,8 +101,8 @@ namespace PriorAuthApi.Data
                     RequestType = RequestType.Medication,
                     CodeSystem = "HCPCS",
                     Code = "J0135",
-                    IndicationCode = "M06.9",
                     DisplayName = "Humira (adalimumab)",
+                    IndicationCode = "M06.9",
                     IndicationDisplayName = "Rheumatoid Arthritis",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
@@ -197,18 +197,81 @@ namespace PriorAuthApi.Data
                     RequestType = RequestType.Medication,
                     CodeSystem = "HCPCS",
                     Code = "J3490",
-                    IndicationCode = "E66.9",
                     DisplayName = "Wegovy (semaglutide)",
+                    IndicationCode = "E66.9",
                     IndicationDisplayName = "Chronic Weight Management",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
                     {
                         "fields": [
-                            { "name": "bmi", "label": "Current BMI", "type": "number" },
-                            { "name": "comorbidity", "label": "Weight-Related Comorbidity Present", "type": "boolean" },
-                            { "name": "priorWeightLossProgram", "label": "Prior Supervised Weight Loss Program Completed", "type": "boolean" },
-                            { "name": "notes", "label": "Additional Notes", "type": "text", "required": false }
+                            {
+                            "name": "bmi",
+                            "label": "Current BMI",
+                            "type": "number",
+                            "validation": { "required": true, "min": 10, "max": 80, "integer": false }
+                            },
+                            {
+                            "name": "comorbidity",
+                            "label": "Weight-Related Comorbidity Present",
+                            "type": "boolean",
+                            "validation": { "required": true }
+                            },
+                            {
+                            "name": "priorWeightLossProgram",
+                            "label": "Prior Supervised Weight Loss Program Completed",
+                            "type": "boolean",
+                            "validation": { "required": true }
+                            },
+                            {
+                            "name": "notes",
+                            "label": "Additional Notes",
+                            "type": "text",
+                            "validation": { "required": false, "maxLength": 1000 }
+                            }
+                        ],
+                        "medicationFields": [
+                            {
+                            "name": "quantityUnit",
+                            "label": "Quantity Unit",
+                            "type": "select",
+                            "options": ["pen"],
+                            "validation": { "required": true, "allowedValues": ["pen"] },
+                            "defaultValue": "pen",
+                            "editable": false
+                            },
+                            {
+                            "name": "quantityValue",
+                            "label": "Quantity",
+                            "type": "number",
+                            "validation": { "required": true, "min": 1, "max": 4, "integer": true },
+                            "defaultValue": 1,
+                            "editable": true
+                            },
+                            {
+                            "name": "dosageInstructionText",
+                            "label": "Dosage Instructions",
+                            "type": "text",
+                            "validation": { "required": true, "maxLength": 500 },
+                            "placeholder": "e.g. 0.25mg subcutaneous injection once weekly (starting dose)",
+                            "editable": true
+                            },
+                            {
+                            "name": "numberOfRepeatsAllowed",
+                            "label": "Refills Authorized",
+                            "type": "number",
+                            "validation": { "required": true, "min": 0, "max": 12, "integer": true },
+                            "defaultValue": 3,
+                            "editable": true
+                            },
+                            {
+                            "name": "expectedSupplyDurationDays",
+                            "label": "Days Supply",
+                            "type": "number",
+                            "validation": { "required": true, "min": 1, "max": 90, "integer": true },
+                            "defaultValue": 28,
+                            "editable": true
+                            }
                         ]
                     }
                     """,
@@ -227,8 +290,8 @@ namespace PriorAuthApi.Data
                     RequestType = RequestType.Medication,
                     CodeSystem = "RxNorm",
                     Code = "1599538",
-                    IndicationCode = "I48.91",
                     DisplayName = "Xarelto (rivaroxaban)",
+                    IndicationCode = "I48.91",
                     IndicationDisplayName = "Atrial Fibrillation",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
@@ -321,8 +384,8 @@ namespace PriorAuthApi.Data
                     RequestType = RequestType.Medication,
                     CodeSystem = "HCPCS",
                     Code = "J0135",
-                    IndicationCode = "L40.50",
                     DisplayName = "Humira (adalimumab)",
+                    IndicationCode = "L40.50",
                     IndicationDisplayName = "Psoriatic Arthritis",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
@@ -420,8 +483,8 @@ namespace PriorAuthApi.Data
                     RequestType = RequestType.Medication,
                     CodeSystem = "HCPCS",
                     Code = "J0135",
-                    IndicationCode = "K50.90",
                     DisplayName = "Humira (adalimumab)",
+                    IndicationCode = "K50.90",
                     IndicationDisplayName = "Crohn's Disease",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
@@ -521,8 +584,8 @@ namespace PriorAuthApi.Data
                     RequestType = RequestType.Medication,
                     CodeSystem = "RxNorm",
                     Code = "1599538",
-                    IndicationCode = "I82.401",
                     DisplayName = "Xarelto (rivaroxaban)",
+                    IndicationCode = "I82.401",
                     IndicationDisplayName = "Deep Vein Thrombosis",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),
@@ -621,8 +684,8 @@ namespace PriorAuthApi.Data
                     RequestType = RequestType.Medication,
                     CodeSystem = "HCPCS",
                     Code = "J3101",
-                    IndicationCode = "E11.9",
                     DisplayName = "Ozempic (semaglutide)",
+                    IndicationCode = "E11.9",
                     IndicationDisplayName = "Type 2 Diabetes",
                     IsActive = true,
                     EffectiveDate = new DateOnly(2024, 1, 1),

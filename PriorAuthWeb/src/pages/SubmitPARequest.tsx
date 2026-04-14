@@ -121,7 +121,7 @@ export default function SubmitPARequest() {
             system: serviceCodes.find(s => s.code === data.serviceCode)?.system ?? "",
             display: serviceCodes.find(s => s.code === data.serviceCode)?.displayName || data.serviceCode,
         },
-        reasonCode: [{ code: data.indicationCode }],
+        reasonCode: [data.indicationCode],
         clinicalData: dynamicValues,
         medicationRequest: requestType === "Medication" ? {
             medication: {
@@ -129,6 +129,7 @@ export default function SubmitPARequest() {
                 system: serviceCodes.find(s => s.code === data.serviceCode)?.system ?? "",
                 display: serviceCodes.find(s => s.code === data.serviceCode)?.displayName || data.serviceCode,
             },
+            intent: "order",
             dosageInstructionText: dynamicValues["dosageInstructionText"] as string,
             quantityValue: typeof dynamicValues["quantityValue"] === "number" ? dynamicValues["quantityValue"] as number : undefined,
             quantityUnit: dynamicValues["quantityUnit"] as string,

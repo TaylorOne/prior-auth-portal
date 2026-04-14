@@ -7,7 +7,7 @@ export interface AuthRequest {
         system: string;
         display: string;
     };
-    reasonCode: { code: string }[];
+    reasonCode: string[];
     clinicalData?: Record<string, any>;
     medicationRequest?: {
         medication: {
@@ -15,6 +15,7 @@ export interface AuthRequest {
             system: string;
             display: string;
         };
+        intent: string;
         dosageInstructionText?: string;
         quantityValue?: number;
         quantityUnit?: string;
