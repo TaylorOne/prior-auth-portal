@@ -6,7 +6,7 @@ namespace PriorAuthApi.DTOs
     public record AuthRuleResponseDto
     {
         public int Id { get; init; }
-        public RequestType RequestType { get; init; }
+        public string RequestType { get; init; } = default!;
         public string CodeSystem { get; init; } = default!;
         public string Code { get; init; } = default!;
         public string? IndicationCode { get; init; }
@@ -20,7 +20,7 @@ namespace PriorAuthApi.DTOs
         public static AuthRuleResponseDto FromEntity(AuthRule rule) => new()
         {
             Id = rule.Id,
-            RequestType = rule.RequestType,
+            RequestType = rule.RequestType.ToString(),
             CodeSystem = rule.CodeSystem,
             Code = rule.Code,
             IndicationCode = rule.IndicationCode,

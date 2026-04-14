@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getPriorAuthRequests } from "../api/PriorAuthApi";
 import type { PriorAuthSummary } from "../types/PriorAuth";
 import {
@@ -10,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const statusVariant: Record<string, "default" | "secondary" | "destructive"> = {
@@ -29,6 +31,7 @@ function formatDate(dateStr: string | null): string {
 }
 
 export default function PrescriberDashboard() {
+  const navigate = useNavigate();
   const [requests, setRequests] = useState<PriorAuthSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -138,6 +141,10 @@ export default function PrescriberDashboard() {
           )}
         </CardContent>
       </Card>
+
+      <div className="flex justify-center pt-2">
+        <Button onClick={() => navigate("/submit")}>Submit Request</Button>
+      </div>
     </div>
   );
 }
