@@ -1,5 +1,5 @@
 export interface ServiceCode {
     code: string;
-    system: string;
+    codeSystem: string;
     displayName: string;
 }

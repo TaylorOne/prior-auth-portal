@@ -38,8 +38,6 @@ export async function getAuthRuleForServiceCode(serviceCode: string, indicationC
 }
 
 export async function submitPriorAuthRequest(priorAuthRequest: AuthRequest): Promise<AuthRequest> {
-  console.log("Submitting prior auth request...");
-  console.log(priorAuthRequest);
   const response = await fetch(`${BASE_URL}/priorauth`, {
     method: "POST",
     headers: {
@@ -47,6 +45,13 @@ export async function submitPriorAuthRequest(priorAuthRequest: AuthRequest): Pro
     },
     body: JSON.stringify(priorAuthRequest),
   });
-  if (!response.ok) throw new Error("Failed to submit prior auth request");
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    const message =
+      body?.errors?.join(", ") ??
+      body?.error ??
+      (typeof body === "string" ? body : "Failed to submit prior auth request");
+    throw new Error(message);
+  }
   return response.json();
 }

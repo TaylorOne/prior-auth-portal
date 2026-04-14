@@ -43,6 +43,7 @@ export default function SubmitPARequest() {
         setPatients(p);
         setServiceCodes(s);
       })
+
       .catch(() => setFormError("Could not load form data."))
       .finally(() => setLoadingForm(false));
   }, []);
@@ -80,7 +81,6 @@ export default function SubmitPARequest() {
     }
     getAuthRuleForServiceCode(selectedServiceCode, selectedIndicationCode)
       .then((rule) => {
-        console.log("Fetched auth rule:", rule);
         const fields = rule.formDefinition.fields;
         setRequestType(rule.requestType);
         const allFields = rule.requestType === "Medication"
@@ -118,7 +118,7 @@ export default function SubmitPARequest() {
         priority: "routine", // Hardcoded for demo purposes
         code: {
             code: data.serviceCode,
-            system: serviceCodes.find(s => s.code === data.serviceCode)?.system ?? "",
+            system: serviceCodes.find(s => s.code === data.serviceCode)?.codeSystem ?? "",
             display: serviceCodes.find(s => s.code === data.serviceCode)?.displayName || data.serviceCode,
         },
         reasonCode: [data.indicationCode],
@@ -126,7 +126,7 @@ export default function SubmitPARequest() {
         medicationRequest: requestType === "Medication" ? {
             medication: {
                 code: data.serviceCode,
-                system: serviceCodes.find(s => s.code === data.serviceCode)?.system ?? "",
+                system: serviceCodes.find(s => s.code === data.serviceCode)?.codeSystem ?? "",
                 display: serviceCodes.find(s => s.code === data.serviceCode)?.displayName || data.serviceCode,
             },
             intent: "order",
@@ -138,7 +138,7 @@ export default function SubmitPARequest() {
         } : undefined,
     };
 
-    console.log("Submit:", { ...data, formData: dynamicValues });
+    console.log("Submit:", { request });
     try {
       await submitPriorAuthRequest(request);
       alert("Prior auth request submitted successfully!");
