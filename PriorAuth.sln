@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PriorAuthApi", "PriorAuthApi\PriorAuthApi.csproj", "{5F04CE83-22A8-4B90-BD6D-FA75AC9EB22B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PriorAuthApi.Tests", "PriorAuthApi.Tests\PriorAuthApi.Tests.csproj", "{5C87FBDA-8FDA-4FFC-ACD0-1A01A1DD84E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{5F04CE83-22A8-4B90-BD6D-FA75AC9EB22B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F04CE83-22A8-4B90-BD6D-FA75AC9EB22B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F04CE83-22A8-4B90-BD6D-FA75AC9EB22B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C87FBDA-8FDA-4FFC-ACD0-1A01A1DD84E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C87FBDA-8FDA-4FFC-ACD0-1A01A1DD84E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C87FBDA-8FDA-4FFC-ACD0-1A01A1DD84E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C87FBDA-8FDA-4FFC-ACD0-1A01A1DD84E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
