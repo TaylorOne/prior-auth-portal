@@ -53,17 +53,17 @@ namespace PriorAuthApi.Validators
                             return false;
                         }
 
-                        if (field.Type == "integer")
+                        if (field.Type == "number")
                         {
-                            if (!int.TryParse(value.ToString(), out int intValue))
+                            if (!double.TryParse(value.ToString(), out double numValue))
                             {
                                 return false;
                             }
-                            if (field.Validation.Min.HasValue && intValue < field.Validation.Min.Value)
+                            if (field.Validation.Min.HasValue && numValue < field.Validation.Min.Value)
                             {
                                 return false;
                             }
-                            if (field.Validation.Max.HasValue && intValue > field.Validation.Max.Value)
+                            if (field.Validation.Max.HasValue && numValue > field.Validation.Max.Value)
                             {
                                 return false;
                             }

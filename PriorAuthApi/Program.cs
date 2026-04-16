@@ -25,14 +25,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await AuthRuleSeeder.SeedAsync(context);
     await OrganizationSeeder.SeedAsync(context);
     await PractitionerSeeder.SeedAsync(context);
     await PatientSeeder.SeedAsync(context);
-}   
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -56,3 +57,5 @@ app.UseExceptionHandler(exceptionApp => exceptionApp.Run(async context =>
 app.MapAuthRuleEndpoints();
 
 app.Run();
+
+public partial class Program { }
