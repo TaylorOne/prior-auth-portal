@@ -46,8 +46,10 @@ namespace PriorAuthApi.Data
                     """,
                     RuleDefinition = """
                     {
-                        "therapyRequired": true,
-                        "minTherapyWeeks": 6
+                        "rules": [
+                            { "field": "therapyCompleted", "operator": "equals", "value": true },
+                            { "field": "therapyDurationWeeks", "operator": "gte", "value": 6 }
+                        ]
                     }
                     """
                 },
@@ -89,8 +91,10 @@ namespace PriorAuthApi.Data
                     """,
                     RuleDefinition = """
                     {
-                        "familyHistoryRequired": true,
-                        "priorCounselingRequired": true
+                        "rules": [
+                            { "field": "familyHistoryConfirmed", "operator": "equals", "value": true },
+                            { "field": "priorCounselingCompleted", "operator": "equals", "value": true }
+                        ]
                     }
                     """
                 },
@@ -185,8 +189,10 @@ namespace PriorAuthApi.Data
                     """,
                     RuleDefinition = """
                     {
-                        "priorDMARDRequired": true,
-                        "minDMARDWeeks": 12
+                        "rules": [
+                            { "field": "priorDMARDTrial", "operator": "equals", "value": true },
+                            { "field": "dmardDurationWeeks", "operator": "gte", "value": 12 }
+                        ]
                     }
                     """
                 },
@@ -277,9 +283,15 @@ namespace PriorAuthApi.Data
                     """,
                     RuleDefinition = """
                     {
-                        "minBMIWithComorbidity": 27,
-                        "minBMIWithoutComorbidity": 30,
-                        "priorProgramRequired": true
+                        "rules": [
+                            {
+                                "type": "conditional",
+                                "condition": { "field": "comorbidity", "operator": "equals", "value": true },
+                                "then": [{ "field": "bmi", "operator": "gte", "value": 27 }],
+                                "else": [{ "field": "bmi", "operator": "gte", "value": 30 }]
+                            },
+                            { "field": "priorWeightLossProgram", "operator": "equals", "value": true }
+                        ]
                     }
                     """
                 },
@@ -371,9 +383,11 @@ namespace PriorAuthApi.Data
                     """,
                     RuleDefinition = """
                     {
-                        "priorWarfarinRequired": true,
-                        "minWarfarinWeeks": 4,
-                        "reasonForSwitchRequired": true
+                        "rules": [
+                            { "field": "priorWarfarinTrial", "operator": "equals", "value": true },
+                            { "field": "warfarinDurationWeeks", "operator": "gte", "value": 4 },
+                            { "field": "reasonForSwitch", "operator": "hasValue" }
+                        ]
                     }
                     """
                 },
@@ -470,9 +484,11 @@ namespace PriorAuthApi.Data
                     """,
                     RuleDefinition = """
                     {
-                        "priorNSAIDRequired": true,
-                        "minNSAIDWeeks": 4,
-                        "specialistConfirmationRequired": true
+                        "rules": [
+                            { "field": "priorNSAIDTrial", "operator": "equals", "value": true },
+                            { "field": "nsaidDurationWeeks", "operator": "gte", "value": 4 },
+                            { "field": "dermatologyConfirmed", "operator": "equals", "value": true }
+                        ]
                     }
                     """
                 },
@@ -571,9 +587,16 @@ namespace PriorAuthApi.Data
                     """,
                     RuleDefinition = """
                     {
-                        "priorCorticosteroidRequired": true,
-                        "priorImmunomodulatorRequired": true,
-                        "minimumDiseaseClassification": "Moderate"
+                        "rules": [
+                            { "field": "priorCorticosteroidTrial", "operator": "equals", "value": true },
+                            { "field": "priorImmunomodulatorTrial", "operator": "equals", "value": true },
+                            { 
+                                "field": "diseaseClassification", 
+                                "operator": "gte_ordered", 
+                                "value": "Moderate",
+                                "order": ["Mild", "Moderate", "Severe"]
+                            }
+                        ]
                     }
                     """
                 },
@@ -671,9 +694,12 @@ namespace PriorAuthApi.Data
                     """,
                     RuleDefinition = """
                     {
-                        "imagingConfirmationRequired": true,
-                        "priorHeparinRequired": true,
-                        "minTreatmentWeeks": 12
+                        "rules": [
+                            { "field": "dvtConfirmed", "operator": "equals", "value": true },
+                            { "field": "imagingType", "operator": "hasValue" },
+                            { "field": "priorHeparinBridge", "operator": "equals", "value": true },
+                            { "field": "estimatedTreatmentDurationWeeks", "operator": "gte", "value": 12 }
+                        ]
                     }
                     """
                 },
@@ -776,10 +802,19 @@ namespace PriorAuthApi.Data
                     """,
                     RuleDefinition = """
                     {
-                        "minHba1c": 7.0,
-                        "priorMetforminRequired": true,
-                        "metforminContraindicationExcused": true,
-                        "minMetforminWeeks": 12
+                        "rules": [
+                            { "field": "hba1c", "operator": "gte", "value": 7.0 },
+                            {
+                                "type": "conditional",
+                                "condition": { "field": "metforminContraindicated", "operator": "equals", "value": false },
+                                "then": [
+                                    { "field": "priorMetforminTrial", "operator": "equals", "value": true },
+                                    { "field": "metforminDurationWeeks", "operator": "gte", "value": 12 }
+                                ],
+                            "else": []
+                            },
+                            { "field": "diabetesEducationCompleted", "operator": "equals", "value": true }
+                        ]
                     }
                     """
                 }

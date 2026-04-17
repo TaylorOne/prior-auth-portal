@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PriorAuthApi", "PriorAuthAp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PriorAuthApi.Tests", "PriorAuthApi.Tests\PriorAuthApi.Tests.csproj", "{5C87FBDA-8FDA-4FFC-ACD0-1A01A1DD84E6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PriorAuth.AuthEngine", "PriorAuth.AuthEngine\PriorAuth.AuthEngine.csproj", "{3695198F-B2B6-4E20-9DAB-54E808F2AA92}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PriorAuth.AuthEngine.Tests", "PriorAuth.AuthEngine.Tests\PriorAuth.AuthEngine.Tests.csproj", "{4879BD31-DE4C-475D-BF19-656E63BAAF3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,13 @@ Global
 		{5C87FBDA-8FDA-4FFC-ACD0-1A01A1DD84E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C87FBDA-8FDA-4FFC-ACD0-1A01A1DD84E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C87FBDA-8FDA-4FFC-ACD0-1A01A1DD84E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3695198F-B2B6-4E20-9DAB-54E808F2AA92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3695198F-B2B6-4E20-9DAB-54E808F2AA92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3695198F-B2B6-4E20-9DAB-54E808F2AA92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3695198F-B2B6-4E20-9DAB-54E808F2AA92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4879BD31-DE4C-475D-BF19-656E63BAAF3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4879BD31-DE4C-475D-BF19-656E63BAAF3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4879BD31-DE4C-475D-BF19-656E63BAAF3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4879BD31-DE4C-475D-BF19-656E63BAAF3D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
