@@ -4,8 +4,14 @@ public static class FailureReasons
 {
     public const string MissingField = "Required field is missing from clinical data.";
 
+    public static string InvalidDataType(string field) =>
+        $"{field} contains an invalid or unexpected data type.";
+
     public static string BooleanRequirementNotMet(string field) =>
         $"{field} is required but was not confirmed.";
+
+    public static string GreaterThanEqualRequirementNotMet(string field) =>
+        $"{field} does not meet the minimum quantity requirement.";
 
     public static string ThresholdNotMet(string field, object required, object actual) =>
         $"{field} does not meet the minimum requirement of {required} (submitted: {actual}).";
