@@ -9,8 +9,9 @@ namespace PriorAuthApi.Tests
 {
     public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
     {
-        private const string TestConnectionString = 
-            "Server=(localdb)\\mssqllocaldb;Database=PriorAuthDb_Test;Trusted_Connection=True;TrustServerCertificate=True;";
+        private static readonly string TestConnectionString =
+            Environment.GetEnvironmentVariable("TEST_CONNECTION_STRING")
+            ?? "Server=(localdb)\\mssqllocaldb;Database=PriorAuthDb_Test;Trusted_Connection=True;TrustServerCertificate=True;";
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {

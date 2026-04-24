@@ -8,6 +8,20 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          SA_PASSWORD: "CI_TestDb@Passw0rd"
+          ACCEPT_EULA: "Y"
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'CI_TestDb@Passw0rd' -Q 'SELECT 1' -No"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -24,6 +38,8 @@ jobs:
 
       - name: Test
         run: dotnet test PriorAuth.sln --no-restore --verbosity normal
+        env:
+          TEST_CONNECTION_STRING: "Server=localhost,1433;Database=PriorAuthDb_Test;User Id=SA;Password=CI_TestDb@Passw0rd;TrustServerCertificate=True;"
 
       - name: Publish
         run: dotnet publish PriorAuthApi/PriorAuthApi.csproj --no-build --configuration Release --output ./publish
