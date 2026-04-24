@@ -48,6 +48,7 @@ namespace PriorAuthApi.Tests
                 IndicationCode = "M06.9",
                 DisplayName = "Adalimumab (Humira)",
                 IndicationDisplayName = "Rheumatoid Arthritis",
+                IsActive = true,
                 FormDefinition = """
                 {
                     "fields": [
