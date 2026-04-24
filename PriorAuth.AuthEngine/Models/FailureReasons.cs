@@ -21,4 +21,7 @@ public static class FailureReasons
 
     public static string ValueRequired(string field) =>
         $"{field} must have a value selected.";
+
+    public static string ValueNotFound(string field) =>
+        $"{field} has a value that was not recognized.";
 }

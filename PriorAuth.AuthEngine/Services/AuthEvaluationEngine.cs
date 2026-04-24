@@ -17,7 +17,14 @@ public class AuthEvaluationEngine
         
         foreach (var rule in ruleDefinition.Rules)
         {
-            results.Add(EvaluateNode(rule, clinicalData));
+            if (rule.IsConditional)
+            {
+                results.AddRange(EvaluateConditional(rule, clinicalData));
+            }
+            else
+            {
+                results.Add(EvaluateNode(rule, clinicalData));
+            }
         }
 
         return AuthDecision.From(results);
@@ -32,8 +39,18 @@ public class AuthEvaluationEngine
         {
             "equals" => EvaluateEquals(rule, fieldValue),
             "gte" => EvaluateGreaterThanEqual(rule, fieldValue),
+            "hasValue" => EvaluateHasValue(rule, fieldValue),
+            "gte_ordered" => EvaluateGreaterThanEqualOrdered(rule, fieldValue),
             _ => throw new NotImplementedException()
         };
+    }
+
+    private List<RuleResult> EvaluateConditional(RuleNode rule, Dictionary<string, JsonElement> clinicalData)
+    {
+        var conditionResult = EvaluateNode(rule.Condition!, clinicalData);
+        var branch = conditionResult.Passed ? rule.Then! : rule.Else!;
+        
+        return branch.Select(r => EvaluateNode(r, clinicalData)).ToList();
     }
 
     private RuleResult EvaluateEquals(RuleNode rule, JsonElement fieldValue)
@@ -68,6 +85,66 @@ public class AuthEvaluationEngine
             Field = rule.Field!,
             Passed = passed,
             FailureReason = passed ? null : FailureReasons.ThresholdNotMet(rule.Field!, ruleValue, fieldValue.GetDouble())
+        };
+    }
+
+    private RuleResult EvaluateHasValue(RuleNode rule, JsonElement fieldValue)
+    {
+        var passed = fieldValue.ValueKind != JsonValueKind.Null && fieldValue.ValueKind != JsonValueKind.Undefined && !string.IsNullOrEmpty(fieldValue.GetString());
+
+        return new RuleResult
+        {
+            Field = rule.Field!,
+            Passed = passed,
+            FailureReason = passed ? null : FailureReasons.ValueRequired(rule.Field!)
+        };
+    }
+
+    private RuleResult EvaluateGreaterThanEqualOrdered(RuleNode rule, JsonElement fieldValue)
+    {
+        if (fieldValue.ValueKind != JsonValueKind.String || rule.Order == null)
+        {
+            return new RuleResult
+            {
+                Field = rule.Field!,
+                Passed = false,
+                FailureReason = FailureReasons.InvalidDataType(rule.Field!)
+            };
+        }
+
+        var fieldStringValue = fieldValue.GetString();
+        var ruleValue = rule.Value?.GetString();
+
+        if (fieldStringValue == null || ruleValue == null)
+        {
+            return new RuleResult
+            {
+                Field = rule.Field!,
+                Passed = false,
+                FailureReason = FailureReasons.ValueRequired(rule.Field!)
+            };
+        }
+
+        var fieldIndex = rule.Order.IndexOf(fieldStringValue);
+        var ruleIndex = rule.Order.IndexOf(ruleValue);
+
+        if (fieldIndex == -1 || ruleIndex == -1)
+        {
+            return new RuleResult
+            {
+                Field = rule.Field!,
+                Passed = false,
+                FailureReason = FailureReasons.ValueNotFound(rule.Field!)
+            };
+        }
+
+        var passed = fieldIndex >= ruleIndex;
+
+        return new RuleResult
+        {
+            Field = rule.Field!,
+            Passed = passed,
+            FailureReason = passed ? null : FailureReasons.OrderedThresholdNotMet(rule.Field!, ruleValue, fieldStringValue)
         };
     }
 }
