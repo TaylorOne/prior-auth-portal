@@ -48,6 +48,9 @@ jobs:
       - name: Publish
         run: dotnet publish PriorAuthApi/PriorAuthApi.csproj --no-build --configuration Release --output ./publish
 
+      - name: Zip artifact
+        run: cd publish && zip -r ../app.zip .
+
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
@@ -59,4 +62,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: app-prior-auth-dev
-          package: ./publish
+          package: app.zip
