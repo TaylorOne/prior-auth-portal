@@ -1,4 +1,3 @@
-using System.Data;
 using Microsoft.EntityFrameworkCore;
 using PriorAuthApi.Data;
 using PriorAuthApi.Endpoints;
