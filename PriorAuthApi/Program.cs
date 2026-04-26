@@ -1,23 +1,22 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Data.SqlClient;
 using PriorAuthApi.Data;
 using PriorAuthApi.Endpoints;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
-
-SqlAuthenticationProvider.SetProvider(
-    SqlAuthenticationMethod.ActiveDirectoryDefault,
-    new ActiveDirectoryAuthenticationProvider()
-);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevCors", policy =>
@@ -34,18 +33,13 @@ if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await context.Database.MigrateAsync();
     await AuthRuleSeeder.SeedAsync(context);
     await OrganizationSeeder.SeedAsync(context);
     await PractitionerSeeder.SeedAsync(context);
     await PatientSeeder.SeedAsync(context);
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.MapOpenApi();
 
 app.UseCors("DevCors");
 app.UseHttpsRedirection();
@@ -61,6 +55,8 @@ app.UseExceptionHandler(exceptionApp => exceptionApp.Run(async context =>
 }));
 
 app.MapAuthRuleEndpoints();
+
+app.MapGet("/health", () => Results.Ok(new { status = "alive", time = DateTime.UtcNow }));
 
 app.Run();
 
