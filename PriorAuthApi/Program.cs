@@ -33,10 +33,10 @@ if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await AuthRuleSeeder.SeedAsync(context);
-    await OrganizationSeeder.SeedAsync(context);
-    await PractitionerSeeder.SeedAsync(context);
-    await PatientSeeder.SeedAsync(context);
+    // await AuthRuleSeeder.SeedAsync(context);
+    // await OrganizationSeeder.SeedAsync(context);
+    // await PractitionerSeeder.SeedAsync(context);
+    // wait PatientSeeder.SeedAsync(context);
 }
 
 app.MapOpenApi();
