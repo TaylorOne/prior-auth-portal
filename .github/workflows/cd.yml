@@ -32,7 +32,7 @@ jobs:
       - name: Apply EF Migrations
         run: dotnet ef database update --project PriorAuthApi/PriorAuthApi.csproj --startup-project PriorAuthApi/PriorAuthApi.csproj
         env:
-          ConnectionStrings__DefaultConnection: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+          ConnectionStrings__DefaultConnection: ${{ secrets.AZURE_SQL_MIGRATION_CONNECTION_STRING }}
 
       - name: Publish
         run: dotnet publish PriorAuthApi/PriorAuthApi.csproj --no-build --configuration Release --output ./publish
