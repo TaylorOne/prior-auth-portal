@@ -12,7 +12,7 @@ namespace PriorAuthApi.Entities
         public Status Status { get; set; }
 
         // FormDefinition-keyed clinical responses — shape varies by AuthRule
-        public string? ClinicalData { get; set; }
+        public string ClinicalData { get; set; } = string.Empty;
 
         // Reviewer output
         public string? ReviewerNotes { get; set; }
