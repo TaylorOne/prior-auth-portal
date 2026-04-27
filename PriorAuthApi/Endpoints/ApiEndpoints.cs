@@ -1,8 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Azure.Messaging.ServiceBus;
+using System.Text.Json;
+using PriorAuth.Contracts;
 using PriorAuthApi.Data;
 using PriorAuthApi.Entities;
 using PriorAuthApi.DTOs;
 using PriorAuthApi.Validators;
+
 
 namespace PriorAuthApi.Endpoints
 {
@@ -66,7 +70,7 @@ namespace PriorAuthApi.Endpoints
             })
             .WithName("GetPriorAuthRequests");
 
-            app.MapPost("/priorauth", async (AppDbContext db, SubmitPriorAuthDto dto) =>
+            app.MapPost("/priorauth", async (AppDbContext db, ServiceBusSender sender, SubmitPriorAuthDto dto) =>
             {
                 if (dto.Code == null || string.IsNullOrEmpty(dto.Code.Code))
                 {
@@ -140,6 +144,19 @@ namespace PriorAuthApi.Endpoints
 
                 db.PriorAuthRequests.Add(request);
                 await db.SaveChangesAsync();
+
+                var message = new ServiceBusMessage(JsonSerializer.Serialize(new PriorAuthSubmittedMessage
+                {
+                    PriorAuthRequestId = request.Id,
+                    CorrelationId = Guid.NewGuid().ToString()
+                }));
+
+                // NOTE: SaveChangesAsync and SendMessageAsync are not atomic. If the Service Bus send fails,
+                // the request is persisted but never evaluated. In production this would be addressed with
+                // the transactional outbox pattern — persisting the message to the DB in the same transaction
+                // as the request, then delivering it to the bus via a background process.
+                // See ADR-007 for the decision record.
+                await sender.SendMessageAsync(message);
 
                 return Results.Created($"/priorauth/{request.Id}", new { request.Id });
             })
