@@ -13,9 +13,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
     
-if (!builder.Environment.IsEnvironment("Testing"))
+var serviceBusConnectionString = builder.Configuration.GetConnectionString("ServiceBus");
+if (!string.IsNullOrEmpty(serviceBusConnectionString))
 {
-    var serviceBusConnectionString = builder.Configuration.GetConnectionString("ServiceBus");
     builder.Services.AddSingleton(new ServiceBusClient(serviceBusConnectionString));
     builder.Services.AddSingleton(sp =>
         sp.GetRequiredService<ServiceBusClient>().CreateSender("auth-evaluation"));
