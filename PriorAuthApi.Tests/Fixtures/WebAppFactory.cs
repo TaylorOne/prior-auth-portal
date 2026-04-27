@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Azure.Messaging.ServiceBus;
+using Moq;
 using PriorAuthApi.Data;
 using PriorAuthApi.Entities;
 
@@ -28,6 +30,10 @@ namespace PriorAuthApi.Tests
                 // Register test DbContext pointing at test DB
                 services.AddDbContext<AppDbContext>(options =>
                     options.UseSqlServer(TestConnectionString));
+
+                // Register a no-op mock sender so the endpoint can resolve it
+                var mockSender = new Mock<ServiceBusSender>();
+                services.AddSingleton(mockSender.Object);
             });
         }
 
