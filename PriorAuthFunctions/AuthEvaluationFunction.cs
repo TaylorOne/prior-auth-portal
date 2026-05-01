@@ -83,8 +83,6 @@ public class AuthEvaluationFunction
             ? Status.Approved
             : Status.Denied;
 
-        request.EvaluationReason = decision.Outcome.ToString();
-
         request.DeterminationDate = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(cancellationToken);
