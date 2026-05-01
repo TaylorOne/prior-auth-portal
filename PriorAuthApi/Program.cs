@@ -30,9 +30,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevCors", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.WithOrigins(
+                "http://localhost:5173",      
+                "https://yellow-glacier-0dd1a3010.7.azurestaticapps.net"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
