@@ -279,6 +279,9 @@ export default function SubmitPARequest() {
                   />
                 )}
 
+                {field.description && (
+                  <p className="text-xs text-muted-foreground">{field.description}</p>
+                )}
                 {dynamicErrors[field.name] && (
                   <p className="text-xs text-destructive">{dynamicErrors[field.name]}</p>
                 )}

@@ -3,6 +3,7 @@ export type FormFieldType = "boolean" | "select" | "number" | "text";
 export interface FormField {
     name: string;
     label: string;
+    description?: string;
     type: FormFieldType;
     options?: string[];
     validation: ValidationRules;
