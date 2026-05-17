@@ -11,7 +11,15 @@ builder.Services.AddEndpointsApiExplorer();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(
+        connectionString,
+        sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null
+        )
+    )
+);
     
 var serviceBusConnectionString = builder.Configuration.GetConnectionString("ServiceBus");
 if (!string.IsNullOrEmpty(serviceBusConnectionString))
