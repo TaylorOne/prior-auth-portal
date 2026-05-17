@@ -24,9 +24,5 @@ namespace PriorAuthApi.Entities
         public int? ExpectedSupplyDurationDays { get; set; }
 
         public string? Note { get; set; }
-
-        // FK
-        public int PriorAuthRequestId { get; set; }
-        public PriorAuthRequest PriorAuthRequest { get; set; } = null!;
     }
 }

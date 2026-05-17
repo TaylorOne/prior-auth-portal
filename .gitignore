@@ -133,6 +133,9 @@ ipch/
 *.vspx
 *.sap
 
+# VS Code directories
+.vscode/
+
 # Visual Studio Trace Files
 *.e2e
 

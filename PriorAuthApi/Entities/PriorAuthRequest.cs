@@ -31,6 +31,7 @@ namespace PriorAuthApi.Entities
         public AuthRule AuthRule { get; set; } = null!;
 
         // Null for procedure/diagnostic PAs, populated for drug PAs
+        public int? MedicationRequestId { get; set; }
         public MedicationRequest? MedicationRequest { get; set; }
     }
 }
