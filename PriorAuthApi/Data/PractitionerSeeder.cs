@@ -5,11 +5,11 @@ namespace PriorAuthApi.Data
 {
     public static class PractitionerSeeder
     {
-        public static async Task SeedAsync(AppDbContext db)
+        public static async Task SeedAsync(AppDbContext db, CancellationToken cancellationToken = default)
         {
-            if (await db.Practitioners.AnyAsync()) return;
+            if (await db.Practitioners.AnyAsync(cancellationToken)) return;
 
-            var orgs = await db.Organizations.ToListAsync();
+            var orgs = await db.Organizations.ToListAsync(cancellationToken);
 
             var valley      = orgs.First(o => o.Name.Contains("Orthopedic"));
             var keystone    = orgs.First(o => o.Name.Contains("Cancer"));
@@ -81,8 +81,8 @@ namespace PriorAuthApi.Data
                 }
             };
 
-            await db.Practitioners.AddRangeAsync(practitioners);
-            await db.SaveChangesAsync();
+            await db.Practitioners.AddRangeAsync(practitioners, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
         }
     }
 }

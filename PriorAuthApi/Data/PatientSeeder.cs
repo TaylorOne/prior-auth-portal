@@ -5,9 +5,9 @@ namespace PriorAuthApi.Data
 {
     public static class PatientSeeder
     {
-        public static async Task SeedAsync(AppDbContext db)
+        public static async Task SeedAsync(AppDbContext db, CancellationToken cancellationToken = default)
         {
-            if (await db.Patients.AnyAsync()) return;
+            if (await db.Patients.AnyAsync(cancellationToken)) return;
 
             var patients = new List<Patient>
             {
@@ -92,8 +92,8 @@ namespace PriorAuthApi.Data
                 }
             };
 
-            await db.Patients.AddRangeAsync(patients);
-            await db.SaveChangesAsync();
+            await db.Patients.AddRangeAsync(patients, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
         }
     }
 }

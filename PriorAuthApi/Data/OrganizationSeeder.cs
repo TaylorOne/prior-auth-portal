@@ -5,9 +5,9 @@ namespace PriorAuthApi.Data
 {
     public static class OrganizationSeeder
     {
-        public static async Task SeedAsync(AppDbContext db)
+        public static async Task SeedAsync(AppDbContext db, CancellationToken cancellationToken = default)
         {
-            if (await db.Organizations.AnyAsync()) return;
+            if (await db.Organizations.AnyAsync(cancellationToken)) return;
 
             var organizations = new List<Organization>
             {
@@ -63,8 +63,8 @@ namespace PriorAuthApi.Data
                 }
             };
 
-            await db.Organizations.AddRangeAsync(organizations);
-            await db.SaveChangesAsync();
+            await db.Organizations.AddRangeAsync(organizations, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
         }
     }
 }

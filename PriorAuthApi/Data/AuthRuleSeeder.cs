@@ -5,7 +5,7 @@ namespace PriorAuthApi.Data
 {
     public static class AuthRuleSeeder
     {
-        public static async Task SeedAsync(AppDbContext context)
+        public static async Task SeedAsync(AppDbContext context, CancellationToken cancellationToken = default)
         {
             var rules = new List<AuthRule> {
 
@@ -867,7 +867,7 @@ namespace PriorAuthApi.Data
                     context.AuthRules.Add(rule);
             }
 
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(cancellationToken);
         }
     }
 }
