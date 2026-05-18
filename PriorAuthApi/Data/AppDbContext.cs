@@ -28,6 +28,12 @@ namespace PriorAuthApi.Data
             modelBuilder.Entity<PriorAuthRequest>()
                 .Property(p => p.Status)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<PriorAuthRequest>()
+                .HasOne(r => r.AuthRule)
+                .WithMany()
+                .HasForeignKey(r => r.AuthRuleId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
