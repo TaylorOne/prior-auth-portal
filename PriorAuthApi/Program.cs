@@ -49,17 +49,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (!app.Environment.IsEnvironment("Testing"))
-{
-    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await AuthRuleSeeder.SeedAsync(context, cts.Token);
-    await OrganizationSeeder.SeedAsync(context, cts.Token);
-    await PractitionerSeeder.SeedAsync(context, cts.Token);
-    await PatientSeeder.SeedAsync(context, cts.Token);
-}
-
 app.MapOpenApi();
 
 app.UseCors("DevCors");
