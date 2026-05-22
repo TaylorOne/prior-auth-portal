@@ -58,12 +58,12 @@ if (!app.Environment.IsDevelopment())
         {
             using var scope = app.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            await db.Database.ExecuteSqlRawAsync("SELECT 1");
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await db.Database.ExecuteSqlRawAsync("SELECT 1", cts.Token);
             break;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (i < 4)
         {
-            if (i == 4) throw;
             app.Logger.LogWarning(ex, "Managed identity pre-warm attempt {Attempt} failed. Retrying in {Delay}s.", i + 1, (i + 1) * 2);
             await Task.Delay(TimeSpan.FromSeconds((i + 1) * 2));
         }
