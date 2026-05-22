@@ -49,6 +49,27 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Pre-warm managed identity token on startup
+if (!app.Environment.IsDevelopment())
+{
+    for (int i = 0; i < 5; i++)
+    {
+        try
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.Database.ExecuteSqlRawAsync("SELECT 1");
+            break;
+        }
+        catch (Exception ex)
+        {
+            if (i == 4) throw;
+            app.Logger.LogWarning(ex, "Managed identity pre-warm attempt {Attempt} failed. Retrying in {Delay}s.", i + 1, (i + 1) * 2);
+            await Task.Delay(TimeSpan.FromSeconds((i + 1) * 2));
+        }
+    }
+}
+
 app.MapOpenApi();
 
 app.UseCors("DevCors");
