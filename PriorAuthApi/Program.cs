@@ -50,7 +50,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Pre-warm managed identity token on startup
-if (!app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
 {
     for (int i = 0; i < 5; i++)
     {
@@ -73,7 +73,6 @@ if (!app.Environment.IsDevelopment())
 app.MapOpenApi();
 
 app.UseCors("DevCors");
-app.UseHttpsRedirection();
 
 app.UseExceptionHandler(exceptionApp => exceptionApp.Run(async context =>
 {
