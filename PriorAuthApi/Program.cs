@@ -13,11 +13,14 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         connectionString,
-        sqlOptions => sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 3,
-            maxRetryDelay: TimeSpan.FromSeconds(10),
-            errorNumbersToAdd: [35]  // TCP Provider internal exception
-        )
+        sqlOptions => {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,                  // Increased retries
+                maxRetryDelay: TimeSpan.FromSeconds(5), // Shorter delay intervals to catch it quicker
+                errorNumbersToAdd: [35, 10054, 104]     // Added common socket reset error numbers
+            );
+            sqlOptions.CommandTimeout(60);         // Give cheap SQL tiers time to respond
+        }
     )
 );
     
@@ -52,27 +55,48 @@ var app = builder.Build();
 // Pre-warm managed identity token on startup
 if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
 {
-    _ = Task.Run(async () =>
+    app.Logger.LogInformation("Starting synchronous Managed Identity token pre-warm...");
+    
+    using (var scope = app.Services.CreateScope())
     {
-        for (int i = 0; i < 5; i++)
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        bool warmedUp = false;
+        int maxAttempts = 4;
+
+        for (int i = 0; i < maxAttempts; i++)
         {
             try
             {
-                using var scope = app.Services.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                // Give the execution a generous 45 seconds to fetch token + talk to database
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+                
+                app.Logger.LogInformation("Database pre-warm token attempt {Attempt} initiated.", i + 1);
                 await db.Database.ExecuteSqlRawAsync("SELECT 1", cts.Token);
-                app.Logger.LogInformation("Managed identity pre-warm succeeded on attempt {Attempt}.", i + 1);
-                return;
+                
+                app.Logger.LogInformation("Managed identity pre-warm completely succeeded on attempt {Attempt}.", i + 1);
+                warmedUp = true;
+                break; 
             }
             catch (Exception ex)
             {
-                app.Logger.LogWarning(ex, "Managed identity pre-warm attempt {Attempt} failed. Retrying in {Delay}s.", i + 1, (i + 1) * 2);
-                await Task.Delay(TimeSpan.FromSeconds((i + 1) * 2));
+                app.Logger.LogWarning("Pre-warm attempt {Attempt} failed: {Message}. Retrying...", i + 1, ex.Message);
+                
+                if (i < maxAttempts - 1)
+                {
+                    // Linear backoff instead of compounding multiplication to save time
+                    await Task.Delay(TimeSpan.FromSeconds(5)); 
+                }
             }
         }
-        app.Logger.LogWarning("Managed identity pre-warm failed after all attempts.");
-    });
+
+        if (!warmedUp)
+        {
+            app.Logger.LogCritical("CRITICAL: Managed identity pre-warm failed completely. App stepping down to allow platform recovery.");
+            // Exiting gracefully here tells Azure App Service your container is broken, 
+            // prompting a clean restart rather than leaving a zombie running.
+            Environment.Exit(1); 
+        }
+    }
 }
 
 app.MapOpenApi();
