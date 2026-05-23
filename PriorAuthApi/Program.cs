@@ -16,7 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         sqlOptions => sqlOptions.EnableRetryOnFailure(
             maxRetryCount: 3,
             maxRetryDelay: TimeSpan.FromSeconds(10),
-            errorNumbersToAdd: null
+            errorNumbersToAdd: [35]  // TCP Provider internal exception
         )
     )
 );
@@ -52,22 +52,27 @@ var app = builder.Build();
 // Pre-warm managed identity token on startup
 if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
 {
-    for (int i = 0; i < 5; i++)
+    _ = Task.Run(async () =>
     {
-        try
+        for (int i = 0; i < 5; i++)
         {
-            using var scope = app.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            await db.Database.ExecuteSqlRawAsync("SELECT 1", cts.Token);
-            break;
+            try
+            {
+                using var scope = app.Services.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                await db.Database.ExecuteSqlRawAsync("SELECT 1", cts.Token);
+                app.Logger.LogInformation("Managed identity pre-warm succeeded on attempt {Attempt}.", i + 1);
+                return;
+            }
+            catch (Exception ex)
+            {
+                app.Logger.LogWarning(ex, "Managed identity pre-warm attempt {Attempt} failed. Retrying in {Delay}s.", i + 1, (i + 1) * 2);
+                await Task.Delay(TimeSpan.FromSeconds((i + 1) * 2));
+            }
         }
-        catch (Exception ex) when (i < 4)
-        {
-            app.Logger.LogWarning(ex, "Managed identity pre-warm attempt {Attempt} failed. Retrying in {Delay}s.", i + 1, (i + 1) * 2);
-            await Task.Delay(TimeSpan.FromSeconds((i + 1) * 2));
-        }
-    }
+        app.Logger.LogWarning("Managed identity pre-warm failed after all attempts.");
+    });
 }
 
 app.MapOpenApi();
@@ -86,7 +91,25 @@ app.UseExceptionHandler(exceptionApp => exceptionApp.Run(async context =>
 
 app.MapAuthRuleEndpoints();
 
-app.MapGet("/health", () => Results.Ok(new { status = "alive", time = DateTime.UtcNow }));
+app.MapGet("/health", () => Results.Ok(new { status = "alive", time = DateTime.UtcNow }))
+   .WithTags("Health")
+   .AllowAnonymous();
+
+app.MapGet("/health/db", async (AppDbContext db) =>
+{
+    try
+    {
+        await db.Database.ExecuteSqlRawAsync("SELECT 1");
+        return Results.Ok(new { status = "alive", db = "connected", time = DateTime.UtcNow });
+    }
+    catch
+    {
+        return Results.Json(new { status = "degraded", db = "unavailable" }, 
+            statusCode: 503);
+    }
+})
+.WithTags("Health")
+.AllowAnonymous();
 
 app.Run();
 
