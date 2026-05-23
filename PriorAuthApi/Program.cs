@@ -22,7 +22,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
         {
             // Speed up cold starts by ignoring credentials you aren't using locally
-            ExcludeSharedTokenCacheCredential = true,
             ExcludeVisualStudioCredential = true,
             ExcludeInteractiveBrowserCredential = true
         });
@@ -80,15 +79,36 @@ if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        try
+        int maxAttempts = 3;
+        int delaySeconds = 15;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
-            await db.Database.ExecuteSqlRawAsync("SELECT 1", cts.Token);
-            app.Logger.LogInformation("Database pre-warm succeeded. Connection pool is warm.");
-        }
-        catch (Exception ex)
-        {
-            app.Logger.LogCritical(ex, "Database pre-warm failed. Proceeding to boot, relying on connection-level retries.");
+            try
+            {
+                app.Logger.LogInformation("Database pre-warm attempt {Attempt} of {MaxAttempts}...", attempt, maxAttempts);
+                
+                // Keep individual execution timeouts reasonable so we recover fast from server-side drops
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(25));
+                await db.Database.ExecuteSqlRawAsync("SELECT 1", cts.Token);
+                
+                app.Logger.LogInformation("Database pre-warm completely succeeded on attempt {Attempt}. Connection pool is warm.", attempt);
+                break; 
+            }
+            catch (Exception ex)
+            {
+                app.Logger.LogWarning("Pre-warm attempt {Attempt} encountered an issue: {Message}", attempt, ex.Message);
+                
+                if (attempt < maxAttempts)
+                {
+                    app.Logger.LogInformation("Waiting {Delay} seconds before retrying database connection...", delaySeconds);
+                    await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+                }
+                else
+                {
+                    app.Logger.LogCritical(ex, "All database pre-warm attempts exhausted. Proceeding to boot, relying on runtime connection retries.");
+                }
+            }
         }
     }
 }
