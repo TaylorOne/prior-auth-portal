@@ -1,5 +1,6 @@
 import type { PriorAuthSummary } from "@/types/PriorAuth";
 import type { Patient } from "@/types/Patient";
+import type { Practitioner } from "@/types/Practitioner";
 import type { ServiceCode } from "@/types/ServiceCode";
 import type { Indication } from "@/types/Indication";
 import type { AuthRule } from "@/types/AuthRule";
@@ -16,6 +17,12 @@ export async function getPriorAuthRequests(): Promise<PriorAuthSummary[]> {
 export async function getPatients(): Promise<Patient[]> {
   const response = await fetch(`${BASE_URL}/patients`);
   if (!response.ok) throw new Error("Failed to fetch patients");
+  return response.json();
+}
+
+export async function getPractitioners(): Promise<Practitioner[]> {
+  const response = await fetch(`${BASE_URL}/practitioners`);
+  if (!response.ok) throw new Error("Failed to fetch practitioners");
   return response.json();
 }
 

@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { FormField } from "@/types/AuthRule";
 
 export const submitPARequestSchema = z.object({
+    practitionerId: z.coerce.number().positive("Select a practitioner"),
     patientId: z.coerce.number().positive("Select a patient"),
     serviceCode: z.string().min(1, "Select a service"),
     indicationCode: z.string().min(1, "Select an indication"),

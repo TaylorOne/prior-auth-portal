@@ -169,7 +169,7 @@ namespace PriorAuthApi.Endpoints
                         p.Id,
                         $"{p.FirstName} {p.LastName}",
                         DateTime.UtcNow.Year - p.DateOfBirth.Year -
-                            (new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime.UtcNow.Day) 
+                            (new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime.UtcNow.Day)
                                 < p.DateOfBirth ? 1 : 0),
                         p.Gender.ToString()
                     ))
@@ -178,6 +178,21 @@ namespace PriorAuthApi.Endpoints
                 return Results.Ok(patients);
             })
             .WithName("GetPatients");
+
+            app.MapGet("/practitioners", async (AppDbContext db) =>
+            {
+                var practitioners = await db.Practitioners
+                    .Select(p => new PractitionerSummaryDto(
+                        p.Id,
+                        $"Dr. {p.FirstName} {p.LastName}",
+                        p.Npi,
+                        p.Specialty
+                    ))
+                    .ToListAsync();
+
+                return Results.Ok(practitioners);
+            })
+            .WithName("GetPractitioners");
 
         }
     }

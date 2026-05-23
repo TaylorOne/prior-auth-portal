@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getPatients, getServiceCodes, getIndications, getAuthRuleForServiceCode, submitPriorAuthRequest } from "../api/PriorAuthApi";
+import { getPatients, getPractitioners, getServiceCodes, getIndications, getAuthRuleForServiceCode, submitPriorAuthRequest } from "../api/PriorAuthApi";
 import type { Patient } from "../types/Patient";
+import type { Practitioner } from "../types/Practitioner";
 import type { ServiceCode } from "@/types/ServiceCode";
 import type { Indication } from "@/types/Indication";
 import type { FormField } from "@/types/AuthRule";
@@ -13,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function SubmitPARequest() {
+  const [practitioners, setPractitioners] = useState<Practitioner[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [serviceCodes, setServiceCodes] = useState<ServiceCode[]>([]);
   const [indications, setIndications] = useState<Indication[]>([]);
@@ -38,8 +40,9 @@ export default function SubmitPARequest() {
   const selectedIndicationCode = watch("indicationCode");
 
   useEffect(() => {
-    Promise.all([getPatients(), getServiceCodes()])
-      .then(([p, s]) => {
+    Promise.all([getPractitioners(), getPatients(), getServiceCodes()])
+      .then(([pr, p, s]) => {
+        setPractitioners(pr);
         setPatients(p);
         setServiceCodes(s);
       })
@@ -114,7 +117,7 @@ export default function SubmitPARequest() {
 
     const request: AuthRequest = {
         patientId: data.patientId,
-        practitionerId: 1, // Hardcoded for demo purposes
+        practitionerId: data.practitionerId,
         priority: "routine", // Hardcoded for demo purposes
         code: {
             code: data.serviceCode,
@@ -161,6 +164,27 @@ export default function SubmitPARequest() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+            {/* Practitioner */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium" htmlFor="practitionerId">Practitioner</label>
+              <select
+                id="practitionerId"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                defaultValue=""
+                {...register("practitionerId")}
+              >
+                <option value="" disabled>Select a practitioner…</option>
+                {practitioners.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.fullName} — {p.specialty}
+                  </option>
+                ))}
+              </select>
+              {errors.practitionerId && (
+                <p className="text-xs text-destructive">{errors.practitionerId.message}</p>
+              )}
+            </div>
 
             {/* Patient */}
             <div className="space-y-1">
