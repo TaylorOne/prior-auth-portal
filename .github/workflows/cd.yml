@@ -23,16 +23,13 @@ jobs:
       - name: Install EF Tools
         run: dotnet tool install --global dotnet-ef
 
-      - name: Restore
-        run: dotnet restore PriorAuth.sln --runtime linux-x64
-
       - name: Apply EF Migrations
         run: dotnet ef database update --project PriorAuthApi/PriorAuthApi.csproj --startup-project PriorAuthApi/PriorAuthApi.csproj
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.AZURE_SQL_MIGRATION_CONNECTION_STRING }}
 
       - name: Publish
-        run: dotnet publish PriorAuthApi/PriorAuthApi.csproj --no-restore --configuration Release --runtime linux-x64 --self-contained true --output ./publish
+        run: dotnet publish PriorAuthApi/PriorAuthApi.csproj --configuration Release --runtime linux-x64 --self-contained true --output ./publish
 
       - name: Zip artifact
         run: cd publish && zip -r ../app.zip .
