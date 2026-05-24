@@ -35,7 +35,12 @@ jobs:
           ConnectionStrings__DefaultConnection: ${{ secrets.AZURE_SQL_MIGRATION_CONNECTION_STRING }}
 
       - name: Publish
-        run: dotnet publish PriorAuthApi/PriorAuthApi.csproj --no-build --configuration Release --output ./publish
+        run: dotnet publish PriorAuthApi/PriorAuthApi.csproj \
+              --no-build \
+              --configuration Release \
+              --runtime linux-x64 \
+              --self-contained true \
+              --output ./publish
 
       - name: Zip artifact
         run: cd publish && zip -r ../app.zip .
