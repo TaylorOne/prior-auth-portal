@@ -14,33 +14,33 @@ builder.Services.AddEndpointsApiExplorer();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var sqlConnection = new SqlConnection(connectionString);
-    
-    // If running in Azure, explicitly inject the token before passing connection to EF Core
-    if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Testing"))
+    if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing"))
     {
+        options.UseSqlServer(connectionString);
+    }
+    else
+    {
+        // Instantiating the credential once is completely thread-safe and highly efficient
         var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
         {
-            // Speed up cold starts by ignoring credentials you aren't using locally
             ExcludeVisualStudioCredential = true,
             ExcludeInteractiveBrowserCredential = true
         });
-        
-        // Request token synchronously or handle natively via Microsoft.Data.SqlClient callback
-        sqlConnection.AccessToken = credential.GetToken(
-            new Azure.Core.TokenRequestContext(new[] { "https://database.windows.net/.default" })
-        ).Token;
-    }
 
-    options.UseSqlServer(sqlConnection, sqlOptions => 
-    {
-        sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(5),
-            errorNumbersToAdd: [35, 10054, 104]
-        );
-        sqlOptions.CommandTimeout(60);
-    });
+        options.UseSqlServer(connectionString, sqlOptions => 
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorNumbersToAdd: [35, 10054, 104]
+            );
+            sqlOptions.CommandTimeout(60);
+        });
+
+        // This is the real magic hook. It tells EF Core that every single time it opens 
+        // a connection, run this code block to attach a fresh token from IMDS.
+        options.AddInterceptors(new AzureSqlTokenInterceptor(credential));
+    }
 });
     
 var serviceBusConnectionString = builder.Configuration.GetConnectionString("ServiceBus");
