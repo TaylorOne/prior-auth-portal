@@ -32,7 +32,7 @@ jobs:
           ConnectionStrings__DefaultConnection: ${{ secrets.AZURE_SQL_MIGRATION_CONNECTION_STRING }}
 
       - name: Publish
-        run: dotnet publish PriorAuthApi/PriorAuthApi.csproj --no-restore --configuration Release --self-contained true --output ./publish
+        run: dotnet publish PriorAuthApi/PriorAuthApi.csproj --no-restore --configuration Release --output ./publish
 
       - name: Zip artifact
         run: cd publish && zip -r ../app.zip .
