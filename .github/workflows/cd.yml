@@ -24,7 +24,7 @@ jobs:
         run: dotnet tool install --global dotnet-ef
 
       - name: Restore
-        run: dotnet restore PriorAuth.sln
+        run: dotnet restore PriorAuth.sln --runtime linux-x64
 
       - name: Apply EF Migrations
         run: dotnet ef database update --project PriorAuthApi/PriorAuthApi.csproj --startup-project PriorAuthApi/PriorAuthApi.csproj
