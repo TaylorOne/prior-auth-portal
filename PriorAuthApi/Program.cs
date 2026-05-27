@@ -46,13 +46,13 @@ builder.Services.AddCors(options =>
     });
 });
 
-var app = builder.Build();
-
 // Pre-warm managed identity token on startup
-if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
+if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Testing"))
 {
     builder.Services.AddHostedService<DatabaseWarmupService>();
 }
+
+var app = builder.Build();
 
 app.MapOpenApi();
 
