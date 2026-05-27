@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PriorAuth.Contracts", "Prio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PriorAuthFunctions", "PriorAuthFunctions\PriorAuthFunctions.csproj", "{4C204A58-1C5A-46BA-8772-280B1DA5FDC9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PriorAuth.Data", "PriorAuth.Data\PriorAuth.Data.csproj", "{E89BA98C-64AF-451D-9AF2-2E0C4E6F40D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +50,9 @@ Global
 		{4C204A58-1C5A-46BA-8772-280B1DA5FDC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C204A58-1C5A-46BA-8772-280B1DA5FDC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C204A58-1C5A-46BA-8772-280B1DA5FDC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E89BA98C-64AF-451D-9AF2-2E0C4E6F40D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E89BA98C-64AF-451D-9AF2-2E0C4E6F40D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E89BA98C-64AF-451D-9AF2-2E0C4E6F40D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E89BA98C-64AF-451D-9AF2-2E0C4E6F40D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
