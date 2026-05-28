@@ -1,7 +1,7 @@
 using System.Text.Json;
 using FluentValidation;
 using PriorAuthApi.DTOs;
-using PriorAuthApi.Entities;
+using PriorAuth.Data.Entities;
 
 namespace PriorAuthApi.Validators
 {

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using PriorAuthApi.Entities;
+using PriorAuth.Data.Entities;
 
 namespace PriorAuthApi.DTOs
 {

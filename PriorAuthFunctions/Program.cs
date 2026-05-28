@@ -3,7 +3,7 @@ using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using PriorAuthApi.Data;
+using PriorAuth.Data;
 using PriorAuth.AuthEngine.Services;
 
 var builder = FunctionsApplication.CreateBuilder(args);

@@ -3,9 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Azure.Messaging.ServiceBus;
+using PriorAuth.Data;
+using PriorAuth.Data.Entities;
 using Moq;
-using PriorAuthApi.Data;
-using PriorAuthApi.Entities;
+
 
 namespace PriorAuthApi.Tests
 {

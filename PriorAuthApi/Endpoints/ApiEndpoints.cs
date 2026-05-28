@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Azure.Messaging.ServiceBus;
 using System.Text.Json;
 using PriorAuth.Contracts;
-using PriorAuthApi.Data;
-using PriorAuthApi.Entities;
+using PriorAuth.Data;
+using PriorAuth.Data.Entities;
 using PriorAuthApi.DTOs;
 using PriorAuthApi.Validators;
 

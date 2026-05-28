@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PriorAuth.AuthEngine.Services;
 using PriorAuth.AuthEngine.Models;
-using PriorAuthApi.Data;
-using PriorAuthApi.Entities;
+using PriorAuth.Data;
+using PriorAuth.Data.Entities;
 using PriorAuth.Contracts;
 using System.Text.Json;
 
