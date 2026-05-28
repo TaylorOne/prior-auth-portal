@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Azure.Messaging.ServiceBus;
-using PriorAuthApi.Data;
+using PriorAuth.Data;
 using PriorAuthApi.Services;
 using PriorAuthApi.Endpoints;
 using System.Text.Json.Serialization;

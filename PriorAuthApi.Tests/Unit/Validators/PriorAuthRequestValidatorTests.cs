@@ -1,4 +1,4 @@
-using PriorAuthApi.Entities;
+using PriorAuth.Data.Entities;
 using PriorAuthApi.DTOs;
 using PriorAuthApi.Validators;
 using System.Text.Json;

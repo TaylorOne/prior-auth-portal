@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PriorAuth.Contracts\PriorAuth.Contracts.csproj" />
     <ProjectReference Include="..\PriorAuth.Data\PriorAuth.Data.csproj" />
     <ProjectReference Include="..\PriorAuth.AuthEngine\PriorAuth.AuthEngine.csproj" />
   </ItemGroup>
