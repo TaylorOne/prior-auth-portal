@@ -121,8 +121,8 @@ namespace PriorAuthApi.Endpoints
                     PatientId = dto.PatientId,
                     PractitionerId = dto.PractitionerId,
                     ClinicalData = dto.ClinicalData is not null
-                        ? System.Text.Json.JsonSerializer.Serialize(dto.ClinicalData)
-                        : null,
+                        ? JsonSerializer.Serialize(dto.ClinicalData)
+                        : string.Empty,
                     AuthRuleId = authRule.Id,
                     CreatedAt = DateTime.UtcNow
                 };
