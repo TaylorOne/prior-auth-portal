@@ -67,7 +67,7 @@ jobs:
         run: dotnet restore PriorAuth.sln
 
       - name: Apply EF Migrations
-        run: dotnet ef database update --project PriorAuthApi/PriorAuthApi.csproj --startup-project PriorAuthApi/PriorAuthApi.csproj
+        run: dotnet ef database update --project PriorAuth.Data/PriorAuth.Data.csproj --startup-project PriorAuthApi/PriorAuthApi.csproj
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.AZURE_SQL_MIGRATION_CONNECTION_STRING }}
 
