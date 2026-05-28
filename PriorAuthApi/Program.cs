@@ -39,7 +39,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:5173",      
-                "https://yellow-glacier-0dd1a3010.7.azurest aticapps.net"
+                "https://yellow-glacier-0dd1a3010.7.azurestaticapps.net"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
