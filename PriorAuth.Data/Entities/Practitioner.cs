@@ -1,4 +1,4 @@
-namespace PriorAuthApi.Entities
+namespace PriorAuth.Data.Entities
 {
     public class Practitioner
     {

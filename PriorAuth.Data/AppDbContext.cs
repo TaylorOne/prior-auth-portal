@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using PriorAuthApi.Entities;
+using PriorAuth.Data.Entities;
 
-namespace PriorAuthApi.Data
+namespace PriorAuth.Data
 {
     public class AppDbContext : DbContext
     {

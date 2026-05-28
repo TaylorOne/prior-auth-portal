@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PriorAuthApi.Data.Migrations
+namespace PriorAuth.Data.Migrations
 {
     /// <inheritdoc />
     public partial class AddPriorAuthRequest : Migration

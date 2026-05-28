@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace PriorAuthApi.Data;
+namespace PriorAuth.Data;
 
 public class TransientLoginRetryStrategy : SqlServerRetryingExecutionStrategy
 {

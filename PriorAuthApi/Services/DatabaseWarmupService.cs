@@ -1,6 +1,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using PriorAuthApi.Data;
+using PriorAuthApi;
+using PriorAuth.Data;
 
 namespace PriorAuthApi.Services;
 

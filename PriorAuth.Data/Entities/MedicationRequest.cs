@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace PriorAuthApi.Entities
+namespace PriorAuth.Data.Entities
 {
     public class MedicationRequest
     {

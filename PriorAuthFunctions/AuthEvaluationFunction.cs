@@ -1,13 +1,12 @@
-using Azure.Messaging.ServiceBus;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using PriorAuth.AuthEngine.Services;
-using PriorAuth.AuthEngine.Models;
-using PriorAuthApi.Data;
-using PriorAuthApi.Entities;
-using PriorAuth.Contracts;
-using System.Text.Json;
+Azure.Messaging.ServiceBus;
+Microsoft.Azure.Functions.Worker;
+Microsoft.EntityFrameworkCore;
+Microsoft.Extensions.Logging;
+PriorAuth.AuthEngine.Services;
+PriorAuth.AuthEngine.Models;
+PriorAuth.Data.Entities;
+PriorAuth.Contracts;
+System.Text.Json;
 
 namespace PriorAuthFunctions.Functions;
 
