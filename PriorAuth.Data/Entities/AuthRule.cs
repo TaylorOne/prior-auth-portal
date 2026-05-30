@@ -11,8 +11,9 @@ namespace PriorAuth.Data.Entities
         public string? IndicationDisplayName { get; set; }
         public required string FormDefinition { get; set; }       // JSON array
         public required string RuleDefinition { get; set; }       // JSON array
-        public bool IsActive { get; set; }
-        public DateOnly EffectiveDate { get; set; }
+        public bool RequiresManualReview { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateOnly EffectiveDate { get; set; } = new DateOnly(2026, 1, 1);
         public DateOnly CreatedAt { get; set; } = DateOnly.FromDateTime(DateTime.Now);
     }
 }

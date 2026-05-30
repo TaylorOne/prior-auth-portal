@@ -18,8 +18,6 @@ namespace PriorAuth.Data
                     DisplayName = "MRI Knee without Contrast",
                     IndicationCode = "M25.561",
                     IndicationDisplayName = "Knee pain",
-                    IsActive = true,
-                    EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
                     {
                         "fields": [
@@ -66,8 +64,7 @@ namespace PriorAuth.Data
                     DisplayName = "Genetic Testing",
                     IndicationCode = "Z15.01",
                     IndicationDisplayName = "Hereditary Breast/Ovarian Cancer (BRCA1/BRCA2)",
-                    IsActive = true,
-                    EffectiveDate = new DateOnly(2024, 1, 1),
+                    RequiresManualReview = true,
                     FormDefinition = """
                     {
                         "fields": [
@@ -105,108 +102,6 @@ namespace PriorAuth.Data
                     """
                 },
 
-                // Humira - Rheumatoid Arthritis
-                new AuthRule
-                {
-                    RequestType = RequestType.Medication,
-                    CodeSystem = "HCPCS",
-                    Code = "J0135",
-                    DisplayName = "Humira (adalimumab)",
-                    IndicationCode = "M06.9",
-                    IndicationDisplayName = "Rheumatoid Arthritis",
-                    IsActive = true,
-                    EffectiveDate = new DateOnly(2024, 1, 1),
-                    FormDefinition = """
-                    {
-                        "fields": [
-                            {
-                                "name": "priorDMARDTrial",
-                                "label": "Prior DMARD Trial Completed",
-                                "description": "Confirm the patient has completed an adequate trial of at least one conventional DMARD prior to initiating biologic therapy. Most payers require documented failure, intolerance, or contraindication to a conventional DMARD.",
-                                "type": "boolean",
-                                "validation": { "required": true }
-                            },
-                            {
-                                "name": "dmardName",
-                                "label": "DMARD Medication Name",
-                                "description": "Select the conventional DMARD trialed. Methotrexate is the ACR-preferred first-line agent for RA and is typically required unless contraindicated.",
-                                "type": "select",
-                                "options": ["Methotrexate", "Hydroxychloroquine", "Sulfasalazine", "Leflunomide"],
-                                "validation": {
-                                    "required": true,
-                                    "allowedValues": ["Methotrexate", "Hydroxychloroquine", "Sulfasalazine", "Leflunomide"]
-                                }
-                            },
-                            {
-                                "name": "dmardDurationWeeks",
-                                "label": "Duration of DMARD Trial (weeks)",
-                                "description": "Enter the total duration in weeks. Most payers require a minimum 12-week adequate trial. 24 weeks is common for step therapy requirements.",
-                                "type": "number",
-                                "validation": { "required": true, "min": 0, "max": 104, "integer": true }
-                            },
-                            {
-                                "name": "notes",
-                                "label": "Additional Notes",
-                                "description": "Include relevant clinical context such as adverse reactions, contraindications, or reasons the trial was considered inadequate.",
-                                "type": "text", 
-                                "validation": { "required": false, "maxLength": 1000 }
-                            }
-                        ],
-                        "medicationFields": [
-                            {
-                            "name": "quantityUnit",
-                            "label": "Quantity Unit",
-                            "type": "select",
-                            "options": ["vial", "syringe", "pen"],
-                            "validation": { "required": true, "allowedValues": ["vial", "syringe", "pen"] },
-                            "defaultValue": "vial",
-                            "editable": false
-                            },
-                            {
-                            "name": "quantityValue",
-                            "label": "Quantity",
-                            "type": "number",
-                            "validation": { "required": true, "min": 1, "max": 10, "integer": true },
-                            "defaultValue": 2,
-                            "editable": true
-                            },
-                            {
-                            "name": "dosageInstructionText",
-                            "label": "Dosage Instructions",
-                            "type": "text",
-                            "validation": { "required": true, "maxLength": 500 },
-                            "defaultValue": "40mg subcutaneous injection every other week",
-                            "editable": true
-                            },
-                            {
-                            "name": "numberOfRepeatsAllowed",
-                            "label": "Refills Authorized",
-                            "type": "number",
-                            "validation": { "required": true, "min": 0, "max": 12, "integer": true },
-                            "defaultValue": 5,
-                            "editable": true
-                            },
-                            {
-                            "name": "expectedSupplyDurationDays",
-                            "label": "Days Supply",
-                            "type": "number",
-                            "validation": { "required": true, "min": 1, "max": 90, "integer": true },
-                            "defaultValue": 30,
-                            "editable": true
-                            }
-                        ]
-                    }
-                    """,
-                    RuleDefinition = """
-                    {
-                        "rules": [
-                            { "field": "priorDMARDTrial", "operator": "equals", "value": true },
-                            { "field": "dmardDurationWeeks", "operator": "gte", "value": 12 }
-                        ]
-                    }
-                    """
-                },
-
                 // Wegovy - Chronic Weight Management
                 new AuthRule
                 {
@@ -216,8 +111,7 @@ namespace PriorAuth.Data
                     DisplayName = "Wegovy (semaglutide)",
                     IndicationCode = "E66.9",
                     IndicationDisplayName = "Chronic Weight Management",
-                    IsActive = true,
-                    EffectiveDate = new DateOnly(2024, 1, 1),
+                    RequiresManualReview = true,
                     FormDefinition = """
                     {
                         "fields": [
@@ -319,8 +213,6 @@ namespace PriorAuth.Data
                     DisplayName = "Xarelto (rivaroxaban)",
                     IndicationCode = "I48.91",
                     IndicationDisplayName = "Atrial Fibrillation",
-                    IsActive = true,
-                    EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
                     {
                         "fields": [
@@ -410,6 +302,107 @@ namespace PriorAuth.Data
                     """
                 },
 
+                // Humira - Rheumatoid Arthritis
+                new AuthRule
+                {
+                    RequestType = RequestType.Medication,
+                    CodeSystem = "HCPCS",
+                    Code = "J0135",
+                    DisplayName = "Humira (adalimumab)",
+                    IndicationCode = "M06.9",
+                    IndicationDisplayName = "Rheumatoid Arthritis",
+                    RequiresManualReview = true,
+                    FormDefinition = """
+                    {
+                        "fields": [
+                            {
+                                "name": "priorDMARDTrial",
+                                "label": "Prior DMARD Trial Completed",
+                                "description": "Confirm the patient has completed an adequate trial of at least one conventional DMARD prior to initiating biologic therapy. Most payers require documented failure, intolerance, or contraindication to a conventional DMARD.",
+                                "type": "boolean",
+                                "validation": { "required": true }
+                            },
+                            {
+                                "name": "dmardName",
+                                "label": "DMARD Medication Name",
+                                "description": "Select the conventional DMARD trialed. Methotrexate is the ACR-preferred first-line agent for RA and is typically required unless contraindicated.",
+                                "type": "select",
+                                "options": ["Methotrexate", "Hydroxychloroquine", "Sulfasalazine", "Leflunomide"],
+                                "validation": {
+                                    "required": true,
+                                    "allowedValues": ["Methotrexate", "Hydroxychloroquine", "Sulfasalazine", "Leflunomide"]
+                                }
+                            },
+                            {
+                                "name": "dmardDurationWeeks",
+                                "label": "Duration of DMARD Trial (weeks)",
+                                "description": "Enter the total duration in weeks. Most payers require a minimum 12-week adequate trial. 24 weeks is common for step therapy requirements.",
+                                "type": "number",
+                                "validation": { "required": true, "min": 0, "max": 104, "integer": true }
+                            },
+                            {
+                                "name": "notes",
+                                "label": "Additional Notes",
+                                "description": "Include relevant clinical context such as adverse reactions, contraindications, or reasons the trial was considered inadequate.",
+                                "type": "text", 
+                                "validation": { "required": false, "maxLength": 1000 }
+                            }
+                        ],
+                        "medicationFields": [
+                            {
+                            "name": "quantityUnit",
+                            "label": "Quantity Unit",
+                            "type": "select",
+                            "options": ["vial", "syringe", "pen"],
+                            "validation": { "required": true, "allowedValues": ["vial", "syringe", "pen"] },
+                            "defaultValue": "vial",
+                            "editable": false
+                            },
+                            {
+                            "name": "quantityValue",
+                            "label": "Quantity",
+                            "type": "number",
+                            "validation": { "required": true, "min": 1, "max": 10, "integer": true },
+                            "defaultValue": 2,
+                            "editable": true
+                            },
+                            {
+                            "name": "dosageInstructionText",
+                            "label": "Dosage Instructions",
+                            "type": "text",
+                            "validation": { "required": true, "maxLength": 500 },
+                            "defaultValue": "40mg subcutaneous injection every other week",
+                            "editable": true
+                            },
+                            {
+                            "name": "numberOfRepeatsAllowed",
+                            "label": "Refills Authorized",
+                            "type": "number",
+                            "validation": { "required": true, "min": 0, "max": 12, "integer": true },
+                            "defaultValue": 5,
+                            "editable": true
+                            },
+                            {
+                            "name": "expectedSupplyDurationDays",
+                            "label": "Days Supply",
+                            "type": "number",
+                            "validation": { "required": true, "min": 1, "max": 90, "integer": true },
+                            "defaultValue": 30,
+                            "editable": true
+                            }
+                        ]
+                    }
+                    """,
+                    RuleDefinition = """
+                    {
+                        "rules": [
+                            { "field": "priorDMARDTrial", "operator": "equals", "value": true },
+                            { "field": "dmardDurationWeeks", "operator": "gte", "value": 12 }
+                        ]
+                    }
+                    """
+                },
+
                 // Humira - Psoriatic Arthritis
                 new AuthRule
                 {
@@ -419,8 +412,6 @@ namespace PriorAuth.Data
                     DisplayName = "Humira (adalimumab)",
                     IndicationCode = "L40.50",
                     IndicationDisplayName = "Psoriatic Arthritis",
-                    IsActive = true,
-                    EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
                     {
                         "fields": [
@@ -524,8 +515,6 @@ namespace PriorAuth.Data
                     DisplayName = "Humira (adalimumab)",
                     IndicationCode = "K50.90",
                     IndicationDisplayName = "Crohn's Disease",
-                    IsActive = true,
-                    EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
                     {
                         "fields": [
@@ -637,8 +626,6 @@ namespace PriorAuth.Data
                     DisplayName = "Xarelto (rivaroxaban)",
                     IndicationCode = "I82.401",
                     IndicationDisplayName = "Deep Vein Thrombosis",
-                    IsActive = true,
-                    EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
                     {
                         "fields": [
@@ -745,8 +732,6 @@ namespace PriorAuth.Data
                     DisplayName = "Ozempic (semaglutide)",
                     IndicationCode = "E11.9",
                     IndicationDisplayName = "Type 2 Diabetes",
-                    IsActive = true,
-                    EffectiveDate = new DateOnly(2024, 1, 1),
                     FormDefinition = """
                     {
                         "fields": [
