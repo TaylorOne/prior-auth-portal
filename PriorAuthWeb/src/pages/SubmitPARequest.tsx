@@ -25,6 +25,7 @@ export default function SubmitPARequest() {
   const [dynamicValues, setDynamicValues] = useState<Record<string, string | number | boolean>>({});
   const [dynamicErrors, setDynamicErrors] = useState<Record<string, string>>({});
   const [requestType, setRequestType] = useState<"Service" | "Medication" | null>(null);
+  const [requiresManualReview, setRequiresManualReview] = useState(false);
 
   const {
     register,
@@ -57,6 +58,7 @@ export default function SubmitPARequest() {
       setDynamicFields([]);
       setDynamicValues({});
       setRequestType(null);
+      setRequiresManualReview(false);
       return;
     }
     setLoadingIndications(true);
@@ -64,6 +66,7 @@ export default function SubmitPARequest() {
     setDynamicFields([]);
     setDynamicValues({});
     setDynamicErrors({});
+    setRequiresManualReview(false);
     getIndications(selectedServiceCode)
       .then((results) => {
         setIndications(results);
@@ -80,12 +83,14 @@ export default function SubmitPARequest() {
       setDynamicFields([]);
       setDynamicValues({});
       setRequestType(null);
+      setRequiresManualReview(false);
       return;
     }
     getAuthRuleForServiceCode(selectedServiceCode, selectedIndicationCode)
       .then((rule) => {
         const fields = rule.formDefinition.fields;
         setRequestType(rule.requestType);
+        setRequiresManualReview(rule.requiresManualReview);
         const allFields = rule.requestType === "Medication"
           ? [...fields, ...(rule.formDefinition.medicationFields ?? [])]
           : fields;
@@ -100,6 +105,7 @@ export default function SubmitPARequest() {
         setDynamicValues({});
         setDynamicErrors({});
         setRequestType(null);
+        setRequiresManualReview(false);
       });
   }, [selectedServiceCode, selectedIndicationCode]);
 
@@ -249,6 +255,11 @@ export default function SubmitPARequest() {
               </select>
               {errors.indicationCode && (
                 <p className="text-xs text-destructive">{errors.indicationCode.message}</p>
+              )}
+              {requiresManualReview && (
+                <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                  This indication requires manual review by a clinical reviewer.
+                </div>
               )}
             </div>
 

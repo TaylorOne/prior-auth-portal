@@ -34,6 +34,7 @@ export interface AuthRule {
     formDefinition: FormDefinition;
     ruleDefinition: Record<string, string | number | boolean>;
     isActive: boolean;
+    requiresManualReview: boolean;
     effectiveDate: string; // ISO date string
     createdAt: string; // ISO date string
 }
