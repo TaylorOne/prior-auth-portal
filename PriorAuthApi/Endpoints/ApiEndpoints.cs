@@ -117,7 +117,7 @@ namespace PriorAuthApi.Endpoints
                     ServiceCodeSystem = dto.Code.System,
                     ServiceCodeDisplay = dto.Code.Display,
                     Priority = dto.Priority,
-                    Status = Status.Draft,
+                    Status = Status.Submitted,
                     PatientId = dto.PatientId,
                     PractitionerId = dto.PractitionerId,
                     ClinicalData = dto.ClinicalData is not null

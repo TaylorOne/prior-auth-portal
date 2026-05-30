@@ -69,11 +69,18 @@ public class AuthEvaluationFunction
             throw new InvalidOperationException($"Request {payload.PriorAuthRequestId} not found.");
         }
 
-        // Idempotency guard — don't re-evaluate a decided request
-        if (request.Status is Status.Approved or Status.Denied)
+        // Idempotency guard
+        if (request.Status != Status.Submitted)
         {
-            _logger.LogWarning("Request {Id} already decided ({Status}). Skipping.", 
+            _logger.LogWarning("Request {Id} is not in Submitted state ({Status}). Skipping.", 
                 request.Id, request.Status);
+            return;
+        }
+
+        if (request.AuthRule.RequiresManualReview)
+        {
+            request.Status = Status.UnderReview;
+            await _db.SaveChangesAsync(cancellationToken);
             return;
         }
 
