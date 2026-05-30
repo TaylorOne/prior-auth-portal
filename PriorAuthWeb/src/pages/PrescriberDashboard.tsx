@@ -17,8 +17,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const statusVariant: Record<string, "default" | "secondary" | "destructive"> = {
   Draft: "secondary",
   Submitted: "default",
+  UnderReview: "default",
   Approved: "default",
   Denied: "destructive",
+};
+
+const statusLabel: Record<string, string> = {
+  Draft: "Draft",
+  Submitted: "Submitted",
+  UnderReview: "Pending Reviewer Decision",
+  Approved: "Approved",
+  Denied: "Denied",
+  NeedsMoreInfo: "More Info Required",
+  Cancelled: "Cancelled",
 };
 
 function formatDate(dateStr: string | null): string {
@@ -99,9 +110,8 @@ export default function PrescriberDashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
                   <TableHead>Patient</TableHead>
-                  <TableHead>Service</TableHead>
+                  <TableHead>Service/Medication</TableHead>
                   <TableHead>Practitioner</TableHead>
                   <TableHead>Priority</TableHead>
                   <TableHead>Status</TableHead>
@@ -112,7 +122,6 @@ export default function PrescriberDashboard() {
               <TableBody>
                 {requests.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell className="font-mono text-sm">#{r.id}</TableCell>
                     <TableCell>{r.patientName}</TableCell>
                     <TableCell>
                       <span className="font-medium">{r.serviceCode}</span>
@@ -129,7 +138,9 @@ export default function PrescriberDashboard() {
                     <TableCell className="capitalize">{r.priority}</TableCell>
                     <TableCell>
                       <Badge variant={statusVariant[r.status] ?? "default"}>
-                        {r.status}
+                        <Badge variant={statusVariant[r.status] ?? "default"}>
+                          {statusLabel[r.status] ?? r.status}
+                        </Badge>
                       </Badge>
                     </TableCell>
                     <TableCell>{formatDate(r.createdAt)}</TableCell>
@@ -143,7 +154,7 @@ export default function PrescriberDashboard() {
       </Card>
 
       <div className="flex justify-center pt-2">
-        <Button onClick={() => navigate("/submit")}>Submit Request</Button>
+        <Button onClick={() => navigate("/submit")}>New Request</Button>
       </div>
     </div>
   );
