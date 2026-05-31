@@ -5,7 +5,7 @@ namespace PriorAuth.Data
 {
     public static class AuthRuleSeeder
     {
-        public static async Task SeedAsync(AppDbContext context, CancellationToken cancellationToken = default)
+        public static async Task SeedAsync(AppDbContext context, Action<string>? log = null, CancellationToken cancellationToken = default)
         {
             var rules = new List<AuthRule> {
 
@@ -845,7 +845,7 @@ namespace PriorAuth.Data
 
             foreach (var rule in context.ChangeTracker.Entries<AuthRule>())
             {
-                Console.WriteLine($"{rule.Entity.DisplayName} | {rule.Entity.IndicationCode} | RequiresManualReview: {rule.Entity.RequiresManualReview}");
+                log?.Invoke($"{rule.Entity.DisplayName} | {rule.Entity.IndicationCode} | RequiresManualReview: {rule.Entity.RequiresManualReview}");
             }
 
             context.AuthRules.AddRange(rules);
