@@ -64,7 +64,7 @@ namespace PriorAuth.Data
                     DisplayName = "Genetic Testing",
                     IndicationCode = "Z15.01",
                     IndicationDisplayName = "Hereditary Breast/Ovarian Cancer (BRCA1/BRCA2)",
-                    RequiresManualReview = True,
+                    RequiresManualReview = true,
                     FormDefinition = """
                     {
                         "fields": [
