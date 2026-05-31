@@ -2,6 +2,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using PriorAuth.Data.Entities;
 using PriorAuth.Data;
 using System.Net;
 
@@ -57,6 +58,11 @@ public class DemoResetFunction
         await OrganizationSeeder.SeedAsync(_context);
         await PractitionerSeeder.SeedAsync(_context);
         await PatientSeeder.SeedAsync(_context);
+
+        foreach (var rule in _context.ChangeTracker.Entries<AuthRule>())
+        {
+            Console.WriteLine($"{rule.Entity.DisplayName} | {rule.Entity.IndicationCode} | RequiresManualReview: {rule.Entity.RequiresManualReview}");
+        }
 
         await transaction.CommitAsync();
         _logger.LogInformation("Demo reset complete.");
