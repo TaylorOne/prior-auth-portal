@@ -64,7 +64,7 @@ namespace PriorAuth.Data
                     DisplayName = "Genetic Testing",
                     IndicationCode = "Z15.01",
                     IndicationDisplayName = "Hereditary Breast/Ovarian Cancer (BRCA1/BRCA2)",
-                    RequiresManualReview = true,
+                    RequiresManualReview = True,
                     FormDefinition = """
                     {
                         "fields": [
@@ -843,15 +843,12 @@ namespace PriorAuth.Data
                 }
             };
 
-            foreach (var rule in rules)
+            foreach (var rule in context.ChangeTracker.Entries<AuthRule>())
             {
-                var exists = await context.AuthRules
-                    .AnyAsync(r => r.Code == rule.Code && r.IndicationCode == rule.IndicationCode);
-                
-                if (!exists)
-                    context.AuthRules.Add(rule);
+                Console.WriteLine($"{rule.Entity.DisplayName} | {rule.Entity.IndicationCode} | RequiresManualReview: {rule.Entity.RequiresManualReview}");
             }
 
+            context.AuthRules.AddRange(rules);
             await context.SaveChangesAsync(cancellationToken);
         }
     }
