@@ -843,12 +843,13 @@ namespace PriorAuth.Data
                 }
             };
 
+            context.AuthRules.AddRange(rules);
+
             foreach (var rule in context.ChangeTracker.Entries<AuthRule>())
             {
                 log?.Invoke($"{rule.Entity.DisplayName} | {rule.Entity.IndicationCode} | RequiresManualReview: {rule.Entity.RequiresManualReview}");
             }
 
-            context.AuthRules.AddRange(rules);
             await context.SaveChangesAsync(cancellationToken);
         }
     }
