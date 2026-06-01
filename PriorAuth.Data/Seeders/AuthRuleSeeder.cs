@@ -5,8 +5,10 @@ namespace PriorAuth.Data
 {
     public static class AuthRuleSeeder
     {
-        public static async Task SeedAsync(AppDbContext context, Action<string>? log = null, CancellationToken cancellationToken = default)
+        public static async Task SeedAsync(AppDbContext db, Action<string>? log = null, CancellationToken cancellationToken = default)
         {
+            if (await db.AuthRules.AnyAsync(cancellationToken)) return;
+
             var rules = new List<AuthRule> {
 
                 // MRI Knee
@@ -843,14 +845,8 @@ namespace PriorAuth.Data
                 }
             };
 
-            context.AuthRules.AddRange(rules);
-
-            foreach (var rule in context.ChangeTracker.Entries<AuthRule>())
-            {
-                log?.Invoke($"{rule.Entity.DisplayName} | {rule.Entity.IndicationCode} | RequiresManualReview: {rule.Entity.RequiresManualReview}");
-            }
-
-            await context.SaveChangesAsync(cancellationToken);
+            await db.AuthRules.AddRangeAsync(rules, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
         }
     }
 }
