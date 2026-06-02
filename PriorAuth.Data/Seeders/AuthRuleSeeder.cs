@@ -847,6 +847,7 @@ namespace PriorAuth.Data
 
             await db.AuthRules.AddRangeAsync(rules, cancellationToken);
             await db.SaveChangesAsync(cancellationToken);
+            db.ChangeTracker.Clear();
         }
     }
 }
