@@ -8,6 +8,10 @@ namespace PriorAuth.Data
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options)
         {
+            optionsBuilder.LogTo(
+                message => _logger.LogInformation(message),
+                LogLevel.Information)
+                .EnableSensitiveDataLogging();
         }
 
         public DbSet<Patient> Patients { get; set; }
