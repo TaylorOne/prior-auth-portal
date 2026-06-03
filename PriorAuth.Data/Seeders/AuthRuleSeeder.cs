@@ -5,7 +5,7 @@ namespace PriorAuth.Data
 {
     public static class AuthRuleSeeder
     {
-        public static async Task SeedAsync(AppDbContext db, Action<string>? log = null, CancellationToken cancellationToken = default)
+        public static async Task SeedAsync(AppDbContext db, CancellationToken cancellationToken = default)
         {
             if (await db.AuthRules.AnyAsync(cancellationToken)) return;
 
@@ -20,7 +20,6 @@ namespace PriorAuth.Data
                     DisplayName = "MRI Knee without Contrast",
                     IndicationCode = "M25.561",
                     IndicationDisplayName = "Knee pain",
-                    RequiresManualReview = false,
                     FormDefinition = """
                     {
                         "fields": [
@@ -216,7 +215,6 @@ namespace PriorAuth.Data
                     DisplayName = "Xarelto (rivaroxaban)",
                     IndicationCode = "I48.91",
                     IndicationDisplayName = "Atrial Fibrillation",
-                    RequiresManualReview = false,
                     FormDefinition = """
                     {
                         "fields": [
@@ -416,7 +414,6 @@ namespace PriorAuth.Data
                     DisplayName = "Humira (adalimumab)",
                     IndicationCode = "L40.50",
                     IndicationDisplayName = "Psoriatic Arthritis",
-                    RequiresManualReview = false,
                     FormDefinition = """
                     {
                         "fields": [
@@ -520,7 +517,6 @@ namespace PriorAuth.Data
                     DisplayName = "Humira (adalimumab)",
                     IndicationCode = "K50.90",
                     IndicationDisplayName = "Crohn's Disease",
-                    RequiresManualReview = false,
                     FormDefinition = """
                     {
                         "fields": [
@@ -632,7 +628,6 @@ namespace PriorAuth.Data
                     DisplayName = "Xarelto (rivaroxaban)",
                     IndicationCode = "I82.401",
                     IndicationDisplayName = "Deep Vein Thrombosis",
-                    RequiresManualReview = false,
                     FormDefinition = """
                     {
                         "fields": [
@@ -739,7 +734,6 @@ namespace PriorAuth.Data
                     DisplayName = "Ozempic (semaglutide)",
                     IndicationCode = "E11.9",
                     IndicationDisplayName = "Type 2 Diabetes",
-                    RequiresManualReview = false,
                     FormDefinition = """
                     {
                         "fields": [
@@ -852,14 +846,7 @@ namespace PriorAuth.Data
             };
 
             await db.AuthRules.AddRangeAsync(rules, cancellationToken);
-
-            foreach (var entry in db.ChangeTracker.Entries<AuthRule>())
-            {
-                log?.Invoke($"AuthRule: {entry.Entity.Code} | RequiresManualReview: {entry.Entity.RequiresManualReview} | State: {entry.State}");
-            }
-
             await db.SaveChangesAsync(cancellationToken);
-            db.ChangeTracker.Clear();
         }
     }
 }
