@@ -34,10 +34,6 @@ namespace PriorAuth.Data
                 .WithMany()
                 .HasForeignKey(r => r.AuthRuleId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<AuthRule>()
-                .Property(a => a.RequiresManualReview)
-                .HasDefaultValue(false);
         }
     }
 }
