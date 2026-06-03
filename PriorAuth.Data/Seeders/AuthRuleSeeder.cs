@@ -20,6 +20,7 @@ namespace PriorAuth.Data
                     DisplayName = "MRI Knee without Contrast",
                     IndicationCode = "M25.561",
                     IndicationDisplayName = "Knee pain",
+                    RequiresManualReview = false,
                     FormDefinition = """
                     {
                         "fields": [
@@ -215,6 +216,7 @@ namespace PriorAuth.Data
                     DisplayName = "Xarelto (rivaroxaban)",
                     IndicationCode = "I48.91",
                     IndicationDisplayName = "Atrial Fibrillation",
+                    RequiresManualReview = false,
                     FormDefinition = """
                     {
                         "fields": [
@@ -414,6 +416,7 @@ namespace PriorAuth.Data
                     DisplayName = "Humira (adalimumab)",
                     IndicationCode = "L40.50",
                     IndicationDisplayName = "Psoriatic Arthritis",
+                    RequiresManualReview = false,
                     FormDefinition = """
                     {
                         "fields": [
@@ -517,6 +520,7 @@ namespace PriorAuth.Data
                     DisplayName = "Humira (adalimumab)",
                     IndicationCode = "K50.90",
                     IndicationDisplayName = "Crohn's Disease",
+                    RequiresManualReview = false,
                     FormDefinition = """
                     {
                         "fields": [
@@ -628,6 +632,7 @@ namespace PriorAuth.Data
                     DisplayName = "Xarelto (rivaroxaban)",
                     IndicationCode = "I82.401",
                     IndicationDisplayName = "Deep Vein Thrombosis",
+                    RequiresManualReview = false,
                     FormDefinition = """
                     {
                         "fields": [
@@ -734,6 +739,7 @@ namespace PriorAuth.Data
                     DisplayName = "Ozempic (semaglutide)",
                     IndicationCode = "E11.9",
                     IndicationDisplayName = "Type 2 Diabetes",
+                    RequiresManualReview = false,
                     FormDefinition = """
                     {
                         "fields": [
