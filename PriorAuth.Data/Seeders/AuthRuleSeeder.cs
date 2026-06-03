@@ -846,6 +846,12 @@ namespace PriorAuth.Data
             };
 
             await db.AuthRules.AddRangeAsync(rules, cancellationToken);
+
+            foreach (var entry in db.ChangeTracker.Entries<AuthRule>())
+            {
+                log?.Invoke($"AuthRule: {entry.Entity.Code} | RequiresManualReview: {entry.Entity.RequiresManualReview} | State: {entry.State}");
+            }
+
             await db.SaveChangesAsync(cancellationToken);
             db.ChangeTracker.Clear();
         }

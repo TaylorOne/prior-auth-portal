@@ -53,7 +53,7 @@
             _logger.LogInformation("Wipe complete. Re-seeding...");
 
             // Seed in dependency order (parents before children)
-            await AuthRuleSeeder.SeedAsync(_context);
+            await AuthRuleSeeder.SeedAsync(_context, msg => _logger.LogInformation(msg));
             await OrganizationSeeder.SeedAsync(_context);
             await PractitionerSeeder.SeedAsync(_context);
             await PatientSeeder.SeedAsync(_context);
