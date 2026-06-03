@@ -89,3 +89,16 @@ jobs:
         with:
           app-name: app-prior-auth-dev
           package: app.zip
+
+      # Azure Function Deploy
+      - name: Publish Azure Function
+        run: dotnet publish PriorAuthFunctions/PriorAuthFunctions.csproj --configuration Release --output ./func-publish
+
+      - name: Zip Azure Function artifact
+        run: cd func-publish && zip -r ../func.zip .
+
+      - name: Deploy Azure Function
+        uses: Azure/functions-action@v1
+        with:
+          app-name: func-prior-auth-dev
+          package: func.zip
