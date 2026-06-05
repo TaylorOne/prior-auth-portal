@@ -26,7 +26,12 @@ export function buildDynamicFieldSchema(fields: FormField[]) {
             let schema: z.ZodString = z.string();
             if (required) schema = schema.min(1, `${field.label} is required`);
             if (maxLength !== undefined) schema = schema.max(maxLength, `${field.label} must be ${maxLength} characters or fewer`);
-            shape[field.name] = required ? schema : schema.optional();
+            shape[field.name] = required
+                ? schema
+                : z.preprocess(
+                    (val) => (val === "" || val === null ? undefined : val),
+                    schema.optional()
+                    );
         }
     }
     return z.object(shape);
