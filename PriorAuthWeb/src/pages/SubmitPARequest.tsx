@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router-dom";
 import { getPatients, getPractitioners, getServiceCodes, getIndications, getAuthRuleForServiceCode, submitPriorAuthRequest } from "../api/PriorAuthApi";
 import type { Patient } from "../types/Patient";
 import type { Practitioner } from "../types/Practitioner";
@@ -14,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function SubmitPARequest() {
+  const navigate = useNavigate();
   const [practitioners, setPractitioners] = useState<Practitioner[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [serviceCodes, setServiceCodes] = useState<ServiceCode[]>([]);
@@ -150,7 +152,7 @@ export default function SubmitPARequest() {
     console.log("Submit:", { request });
     try {
       await submitPriorAuthRequest(request);
-      alert("Prior auth request submitted successfully!");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Submission error:", error);
       alert("Failed to submit prior auth request.");
