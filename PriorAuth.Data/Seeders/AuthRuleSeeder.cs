@@ -35,6 +35,7 @@ namespace PriorAuth.Data
                             "label": "Duration of Therapy (weeks)",
                             "description": "Enter the duration of conservative therapy in weeks. Most payers require a minimum 4–6 week trial. MRI is typically authorized when symptoms persist or worsen despite adequate conservative management.",
                             "type": "number",
+                            "defaultValue": 12,
                             "validation": { "required": true, "min": 0, "max": 52, "integer": true }
                             },
                             {
@@ -122,6 +123,7 @@ namespace PriorAuth.Data
                             "label": "Current BMI",
                             "description": "Enter the patient's most recently documented BMI. Wegovy is indicated for BMI ≥ 30 (obesity), or BMI ≥ 27 with at least one weight-related comorbidity such as hypertension, type 2 diabetes, or dyslipidemia.",
                             "type": "number",
+                            "defaultValue": 30,
                             "validation": { "required": true, "min": 10, "max": 80, "integer": false }
                             },
                             {
@@ -169,7 +171,7 @@ namespace PriorAuth.Data
                             "label": "Dosage Instructions",
                             "type": "text",
                             "validation": { "required": true, "maxLength": 500 },
-                            "placeholder": "e.g. 0.25mg subcutaneous injection once weekly (starting dose)",
+                            "defaultValue": "2.4mg subcutaneous injection once weekly",
                             "editable": true
                             },
                             {
@@ -230,6 +232,7 @@ namespace PriorAuth.Data
                             "label": "Duration of Warfarin Trial (weeks)",
                             "description": "Enter the total duration of warfarin therapy in weeks. Payers typically look for a meaningful trial period; however, a short or failed trial due to unstable INR or intolerance is clinically acceptable and should be documented in the reason for switch.",
                             "type": "number",
+                            "defaultValue": 12,
                             "validation": { "required": true, "min": 0, "max": 52, "integer": true }
                             },
                             {
@@ -340,6 +343,7 @@ namespace PriorAuth.Data
                                 "label": "Duration of DMARD Trial (weeks)",
                                 "description": "Enter the total duration in weeks. Most payers require a minimum 12-week adequate trial. 24 weeks is common for step therapy requirements.",
                                 "type": "number",
+                                "defaultValue": 12,
                                 "validation": { "required": true, "min": 0, "max": 104, "integer": true }
                             },
                             {
@@ -428,6 +432,7 @@ namespace PriorAuth.Data
                             "label": "Duration of NSAID Trial (weeks)",
                             "description": "Enter the total duration in weeks. Most payers require a minimum 4-week NSAID trial, though 12 weeks is common for step therapy requirements.",
                             "type": "number",
+                            "defaultValue": 12,
                             "validation": { "required": true, "min": 0, "max": 52, "integer": true }
                             },
                             {
@@ -435,6 +440,7 @@ namespace PriorAuth.Data
                             "label": "Number of Affected Joints",
                             "description": "Enter the number of actively inflamed or tender joints. Most payers require involvement of 3 or more joints to establish moderate-to-severe disease warranting biologic therapy.",
                             "type": "number",
+                            "defaultValue": 3,
                             "validation": { "required": true, "min": 1, "max": 100, "integer": true }
                             },
                             {
@@ -502,6 +508,7 @@ namespace PriorAuth.Data
                         "rules": [
                             { "field": "priorNSAIDTrial", "operator": "equals", "value": true },
                             { "field": "nsaidDurationWeeks", "operator": "gte", "value": 4 },
+                            { "field": "jointsAffected", "operator": "gte", "value": 3 },
                             { "field": "dermatologyConfirmed", "operator": "equals", "value": true }
                         ]
                     }
@@ -656,8 +663,9 @@ namespace PriorAuth.Data
                             {
                             "name": "estimatedTreatmentDurationWeeks",
                             "label": "Estimated Treatment Duration (weeks)",
-                            "description": "Enter the anticipated duration of anticoagulation therapy. Standard treatment for provoked DVT is 3 months (13 weeks); unprovoked DVT or recurrent disease may warrant extended or indefinite therapy.",
+                            "description": "Enter the anticipated duration of anticoagulation therapy. Standard treatment for provoked DVT is 3 months (12 weeks); unprovoked DVT or recurrent disease may warrant extended or indefinite therapy.",
                             "type": "number",
+                            "defaultValue": 12,
                             "validation": { "required": true, "min": 1, "max": 52, "integer": true }
                             },
                             {
@@ -691,7 +699,7 @@ namespace PriorAuth.Data
                             "label": "Dosage Instructions",
                             "type": "text",
                             "validation": { "required": true, "maxLength": 500 },
-                            "placeholder": "e.g. 15mg orally twice daily with food for 21 days, then 20mg once daily",
+                            "defaultValue": "15mg orally twice daily with food for 21 days, then 20mg once daily",
                             "editable": true
                             },
                             {
@@ -742,6 +750,7 @@ namespace PriorAuth.Data
                             "label": "Most Recent HbA1c (%)",
                             "description": "Enter the patient's most recently documented HbA1c percentage. Most payers require HbA1c ≥ 7.5–8.0% to establish inadequate glycemic control warranting GLP-1 therapy. Results should be from within the past 3–6 months.",
                             "type": "number",
+                            "defaultValue": 7.0,
                             "validation": { "required": true, "min": 4.0, "max": 20.0, "integer": false }
                             },
                             {
@@ -803,7 +812,7 @@ namespace PriorAuth.Data
                             "label": "Dosage Instructions",
                             "type": "text",
                             "validation": { "required": true, "maxLength": 500 },
-                            "placeholder": "e.g. 0.5mg subcutaneous injection once weekly",
+                            "defaultValue": "0.5mg subcutaneous injection once weekly",
                             "editable": true
                             },
                             {
