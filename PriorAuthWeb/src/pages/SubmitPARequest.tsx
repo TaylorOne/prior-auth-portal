@@ -152,7 +152,10 @@ export default function SubmitPARequest() {
     console.log("Submit:", { request });
     try {
       await submitPriorAuthRequest(request);
-      navigate("/dashboard");
+      navigate("/dashboard", {
+        state: { priorAuthSubmitted: true },
+        replace: true,
+      });
     } catch (error) {
       console.error("Submission error:", error);
       alert("Failed to submit prior auth request.");

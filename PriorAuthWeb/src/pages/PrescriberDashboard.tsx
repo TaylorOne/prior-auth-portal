@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getPriorAuthRequests } from "../api/PriorAuthApi";
 import type { PriorAuthSummary } from "../types/PriorAuth";
 import {
@@ -42,10 +42,12 @@ function formatDate(dateStr: string | null): string {
 }
 
 export default function PrescriberDashboard() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [requests, setRequests] = useState<PriorAuthSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showSubmittedToast, setShowSubmittedToast] = useState(false);
 
   useEffect(() => {
     getPriorAuthRequests()
@@ -54,8 +56,27 @@ export default function PrescriberDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (!location.state?.priorAuthSubmitted) return;
+
+    setShowSubmittedToast(true);
+    navigate(location.pathname, { replace: true, state: null });
+
+    const timeoutId = window.setTimeout(() => {
+      setShowSubmittedToast(false);
+    }, 4000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [location.pathname, location.state, navigate]);
+
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
+      {showSubmittedToast && (
+        <div className="fixed right-6 top-6 z-50 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 shadow-sm">
+          Prior auth request submitted successfully.
+        </div>
+      )}
+
       <div>
         <h1 className="text-2xl font-semibold">Prior Authorization Requests</h1>
         <p className="text-muted-foreground text-sm mt-1">
