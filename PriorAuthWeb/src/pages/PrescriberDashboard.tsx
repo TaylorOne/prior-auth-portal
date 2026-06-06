@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { CheckCircle2, Clock3, FileText, Plus } from "lucide-react";
 import { getPriorAuthRequests } from "../api/PriorAuthApi";
 import type { PriorAuthSummary } from "../types/PriorAuth";
 import {
@@ -70,112 +71,121 @@ export default function PrescriberDashboard() {
   }, [location.pathname, location.state, navigate]);
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="min-h-svh bg-background px-4 py-6 text-foreground sm:px-6">
       {showSubmittedToast && (
-        <div className="fixed right-6 top-6 z-50 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 shadow-sm">
+        <div className="fixed right-6 top-6 z-50 rounded-md border bg-background px-4 py-3 text-sm font-medium text-foreground shadow-md">
           Prior auth request submitted successfully.
         </div>
       )}
 
-      <div>
-        <h1 className="text-2xl font-semibold">Prior Authorization Requests</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Manage and track submitted authorization requests
-        </p>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-1">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Requests
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{requests.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-1">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pending Review
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {requests.filter((r) => r.status === "Submitted").length}
+      <div className="mx-auto max-w-6xl space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-1.5">
+            <h1 className="m-0 text-2xl font-semibold tracking-normal">
+              Prior Authorization Requests
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Manage and track submitted authorization requests.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+          <Button onClick={() => navigate("/submit")}>
+            <Plus className="size-4" />
+            New Request
+          </Button>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-1">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Requests
+              </CardTitle>
+              <FileText className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">{requests.length}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-1">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Pending Review
+              </CardTitle>
+              <Clock3 className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">
+                {requests.filter((r) => r.status === "Submitted").length}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-1">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Approved
+              </CardTitle>
+              <CheckCircle2 className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">
+                {requests.filter((r) => r.status === "Approved").length}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
-          <CardHeader className="pb-1">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Approved
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {requests.filter((r) => r.status === "Approved").length}
-            </p>
+          <CardContent className="pt-4">
+            {loading && (
+              <p className="text-sm text-muted-foreground">Loading requests...</p>
+            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            {!loading && !error && (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Patient</TableHead>
+                      <TableHead>Service/Medication</TableHead>
+                      <TableHead>Practitioner</TableHead>
+                      <TableHead>Priority</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Submitted</TableHead>
+                      <TableHead>Determination</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {requests.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="font-medium">{r.patientName}</TableCell>
+                        <TableCell>
+                          <span className="font-medium">{r.serviceCode}</span>
+                          <span className="block text-xs text-muted-foreground">
+                            {r.serviceCodeDisplay}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span>{r.practitionerName}</span>
+                          <span className="block text-xs text-muted-foreground">
+                            {r.specialty}
+                          </span>
+                        </TableCell>
+                        <TableCell className="capitalize">{r.priority}</TableCell>
+                        <TableCell>
+                          <Badge variant={statusVariant[r.status] ?? "default"}>
+                            {statusLabel[r.status] ?? r.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{formatDate(r.createdAt)}</TableCell>
+                        <TableCell>{formatDate(r.determinationDate)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
-      </div>
-
-      <Card>
-        <CardContent className="pt-4">
-          {loading && (
-            <p className="text-sm text-muted-foreground">Loading requests...</p>
-          )}
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          {!loading && !error && (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Patient</TableHead>
-                  <TableHead>Service/Medication</TableHead>
-                  <TableHead>Practitioner</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Determination</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {requests.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell>{r.patientName}</TableCell>
-                    <TableCell>
-                      <span className="font-medium">{r.serviceCode}</span>
-                      <span className="block text-xs text-muted-foreground">
-                        {r.serviceCodeDisplay}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span>{r.practitionerName}</span>
-                      <span className="block text-xs text-muted-foreground">
-                        {r.specialty}
-                      </span>
-                    </TableCell>
-                    <TableCell className="capitalize">{r.priority}</TableCell>
-                    <TableCell>
-                      <Badge variant={statusVariant[r.status] ?? "default"}>
-                        <Badge variant={statusVariant[r.status] ?? "default"}>
-                          {statusLabel[r.status] ?? r.status}
-                        </Badge>
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatDate(r.createdAt)}</TableCell>
-                    <TableCell>{formatDate(r.determinationDate)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-center pt-2">
-        <Button onClick={() => navigate("/submit")}>New Request</Button>
       </div>
     </div>
   );
