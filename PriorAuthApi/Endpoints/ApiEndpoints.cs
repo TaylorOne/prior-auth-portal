@@ -157,9 +157,11 @@ namespace PriorAuthApi.Endpoints
                 var correlationId = Guid.NewGuid().ToString();
                 var message = new ServiceBusMessage(JsonSerializer.Serialize(new PriorAuthSubmittedMessage
                 {
-                    PriorAuthRequestId = request.Id,
+                    PriorAuthRequestId = request.Id
+                }))
+                {
                     CorrelationId = correlationId
-                }));
+                };
 
                 // NOTE: SaveChangesAsync and SendMessageAsync are not atomic. If the Service Bus send fails,
                 // the request is persisted but never evaluated. In production this would be addressed with
