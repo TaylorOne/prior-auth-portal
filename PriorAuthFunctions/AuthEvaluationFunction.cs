@@ -84,7 +84,18 @@ public class AuthEvaluationFunction
         await _audit.LogAsync(request.Id, AuditEventTypes.FunctionReceivedMessage, AuditActors.AuthEvaluationFunction,
             new { correlationId, messageId = message.MessageId }, cancellationToken);
 
-        if (request.AuthRule.RequiresManualReview)
+        var decision = _engine.Evaluate(request.ClinicalData, request.AuthRule.RuleDefinition);
+
+        await _audit.LogAsync(request.Id, AuditEventTypes.EvaluationCompleted, AuditActors.AuthEvaluationFunction,
+            new
+            {
+                outcome = decision.Outcome.ToString(),
+                ruleResults = decision.RuleResults.Select(r => new { r.Field, r.Passed, r.FailureReason })
+            }, cancellationToken);
+
+        // Route to manual review only when the rule requires it AND the automated evaluation would approve —
+        // requests that fail evaluation are denied immediately without burdening a reviewer.
+        if (decision.Outcome == AuthOutcome.Approved && request.AuthRule.RequiresManualReview)
         {
             request.Status = Status.UnderReview;
             await _db.SaveChangesAsync(cancellationToken);
@@ -92,8 +103,6 @@ public class AuthEvaluationFunction
                 new { from = "Submitted", to = "UnderReview" }, cancellationToken);
             return;
         }
-
-        var decision = _engine.Evaluate(request.ClinicalData, request.AuthRule.RuleDefinition);
 
         request.Status = decision.Outcome == AuthOutcome.Approved
             ? Status.Approved
@@ -104,13 +113,6 @@ public class AuthEvaluationFunction
         await _db.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Request {Id} decided: {Outcome}", request.Id, decision.Outcome);
-
-        await _audit.LogAsync(request.Id, AuditEventTypes.EvaluationCompleted, AuditActors.AuthEvaluationFunction,
-            new
-            {
-                outcome = decision.Outcome.ToString(),
-                ruleResults = decision.RuleResults.Select(r => new { r.Field, r.Passed, r.FailureReason })
-            }, cancellationToken);
 
         await _audit.LogAsync(request.Id, AuditEventTypes.StatusTransitioned, AuditActors.AuthEvaluationFunction,
             new { from = "Submitted", to = request.Status.ToString() }, cancellationToken);
