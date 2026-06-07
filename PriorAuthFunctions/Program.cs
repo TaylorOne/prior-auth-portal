@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PriorAuth.Data;
+using PriorAuth.Data.Services;
 using PriorAuth.AuthEngine.Services;
 using Microsoft.Extensions.Logging;
 
@@ -21,5 +22,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration["SqlConnectionString"]));
 
 builder.Services.AddScoped<AuthEvaluationEngine>();
+builder.Services.AddScoped<AuditService>();
 
 builder.Build().Run();

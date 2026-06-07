@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Azure.Messaging.ServiceBus;
 using PriorAuth.Data;
+using PriorAuth.Data.Services;
 using PriorAuthApi.Services;
 using PriorAuthApi.Endpoints;
 using System.Text.Json.Serialization;
@@ -45,6 +46,8 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
+builder.Services.AddScoped<AuditService>();
 
 // Pre-warm managed identity token on startup
 if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Testing"))

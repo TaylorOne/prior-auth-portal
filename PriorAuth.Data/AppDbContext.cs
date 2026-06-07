@@ -16,6 +16,7 @@ namespace PriorAuth.Data
         public DbSet<AuthRule> AuthRules { get; set; }
         public DbSet<MedicationRequest> MedicationRequests { get; set; }
         public DbSet<Organization> Organizations { get; set; }
+        public DbSet<AuditEvent> AuditEvents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +39,12 @@ namespace PriorAuth.Data
             modelBuilder.Entity<AuthRule>()
                 .Property(a => a.RequiresManualReview)
                 .HasDefaultValue(false);
+
+            modelBuilder.Entity<AuditEvent>()
+                .HasOne(a => a.Request)
+                .WithMany()
+                .HasForeignKey(a => a.PriorAuthRequestId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

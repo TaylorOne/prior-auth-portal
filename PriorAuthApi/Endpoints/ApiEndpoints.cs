@@ -4,6 +4,7 @@ using System.Text.Json;
 using PriorAuth.Contracts;
 using PriorAuth.Data;
 using PriorAuth.Data.Entities;
+using PriorAuth.Data.Services;
 using PriorAuthApi.DTOs;
 using PriorAuthApi.Validators;
 
@@ -70,7 +71,7 @@ namespace PriorAuthApi.Endpoints
             })
             .WithName("GetPriorAuthRequests");
 
-            app.MapPost("/priorauth", async (AppDbContext db, ServiceBusSender sender, SubmitPriorAuthDto dto) =>
+            app.MapPost("/priorauth", async (AppDbContext db, ServiceBusSender sender, AuditService audit, SubmitPriorAuthDto dto) =>
             {
                 if (dto.Code == null || string.IsNullOrEmpty(dto.Code.Code))
                 {
@@ -145,10 +146,19 @@ namespace PriorAuthApi.Endpoints
                 db.PriorAuthRequests.Add(request);
                 await db.SaveChangesAsync();
 
+                await audit.LogAsync(request.Id, AuditEventTypes.RequestCreated, AuditActors.System, new
+                {
+                    patientId = request.PatientId,
+                    practitionerId = request.PractitionerId,
+                    serviceCode = request.ServiceCode,
+                    priority = request.Priority
+                });
+
+                var correlationId = Guid.NewGuid().ToString();
                 var message = new ServiceBusMessage(JsonSerializer.Serialize(new PriorAuthSubmittedMessage
                 {
                     PriorAuthRequestId = request.Id,
-                    CorrelationId = Guid.NewGuid().ToString()
+                    CorrelationId = correlationId
                 }));
 
                 // NOTE: SaveChangesAsync and SendMessageAsync are not atomic. If the Service Bus send fails,
@@ -157,6 +167,12 @@ namespace PriorAuthApi.Endpoints
                 // as the request, then delivering it to the bus via a background process.
                 // See ADR-007 for the decision record.
                 await sender.SendMessageAsync(message);
+
+                await audit.LogAsync(request.Id, AuditEventTypes.MessagePublished, AuditActors.System, new
+                {
+                    correlationId,
+                    queue = "auth-evaluation"
+                });
 
                 return Results.Created($"/priorauth/{request.Id}", new { request.Id });
             })

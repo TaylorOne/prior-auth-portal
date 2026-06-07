@@ -6,6 +6,7 @@ using PriorAuth.AuthEngine.Services;
 using PriorAuth.AuthEngine.Models;
 using PriorAuth.Data;
 using PriorAuth.Data.Entities;
+using PriorAuth.Data.Services;
 using PriorAuth.Contracts;
 using System.Text.Json;
 
@@ -15,21 +16,24 @@ public class AuthEvaluationFunction
 {
     private readonly AppDbContext _db;
     private readonly AuthEvaluationEngine _engine;
+    private readonly AuditService _audit;
     private readonly ILogger<AuthEvaluationFunction> _logger;
 
     public AuthEvaluationFunction(
         AppDbContext db,
         AuthEvaluationEngine engine,
+        AuditService audit,
         ILogger<AuthEvaluationFunction> logger)
     {
         _db = db;
         _engine = engine;
+        _audit = audit;
         _logger = logger;
     }
 
     [Function(nameof(AuthEvaluationFunction))]
     public async Task Run(
-        [ServiceBusTrigger("auth-evaluation", Connection = "ServiceBusConnection")] 
+        [ServiceBusTrigger("auth-evaluation", Connection = "ServiceBusConnection")]
         ServiceBusReceivedMessage message,
         CancellationToken cancellationToken)
     {
@@ -72,15 +76,20 @@ public class AuthEvaluationFunction
         // Idempotency guard
         if (request.Status != Status.Submitted)
         {
-            _logger.LogWarning("Request {Id} is not in Submitted state ({Status}). Skipping.", 
+            _logger.LogWarning("Request {Id} is not in Submitted state ({Status}). Skipping.",
                 request.Id, request.Status);
             return;
         }
+
+        await _audit.LogAsync(request.Id, AuditEventTypes.FunctionReceivedMessage, AuditActors.AuthEvaluationFunction,
+            new { correlationId, messageId = message.MessageId }, cancellationToken);
 
         if (request.AuthRule.RequiresManualReview)
         {
             request.Status = Status.UnderReview;
             await _db.SaveChangesAsync(cancellationToken);
+            await _audit.LogAsync(request.Id, AuditEventTypes.StatusTransitioned, AuditActors.AuthEvaluationFunction,
+                new { from = "Submitted", to = "UnderReview" }, cancellationToken);
             return;
         }
 
@@ -95,5 +104,15 @@ public class AuthEvaluationFunction
         await _db.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Request {Id} decided: {Outcome}", request.Id, decision.Outcome);
+
+        await _audit.LogAsync(request.Id, AuditEventTypes.EvaluationCompleted, AuditActors.AuthEvaluationFunction,
+            new
+            {
+                outcome = decision.Outcome.ToString(),
+                ruleResults = decision.RuleResults.Select(r => new { r.Field, r.Passed, r.FailureReason })
+            }, cancellationToken);
+
+        await _audit.LogAsync(request.Id, AuditEventTypes.StatusTransitioned, AuditActors.AuthEvaluationFunction,
+            new { from = "Submitted", to = request.Status.ToString() }, cancellationToken);
     }
 }
