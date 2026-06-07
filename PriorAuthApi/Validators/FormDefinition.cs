@@ -18,8 +18,8 @@ namespace PriorAuthApi.Validators
     {
         public bool Required { get; set; }
         public List<string>? AllowedValues { get; set; }
-        public int? Min { get; set; }
-        public int? Max { get; set; }
+        public double? Min { get; set; }
+        public double? Max { get; set; }
         public bool? Integer { get; set; }
         public int? MaxLength { get; set; }
     }
