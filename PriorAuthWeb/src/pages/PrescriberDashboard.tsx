@@ -62,13 +62,17 @@ export default function PrescriberDashboard() {
 
     setShowSubmittedToast(true);
     navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    if (!showSubmittedToast) return;
 
     const timeoutId = window.setTimeout(() => {
       setShowSubmittedToast(false);
     }, 4000);
 
     return () => window.clearTimeout(timeoutId);
-  }, [location.pathname, location.state, navigate]);
+  }, [showSubmittedToast]);
 
   return (
     <div className="min-h-svh bg-background px-4 py-6 text-foreground sm:px-6">

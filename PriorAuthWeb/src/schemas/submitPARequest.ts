@@ -21,7 +21,12 @@ export function buildDynamicFieldSchema(fields: FormField[]) {
             if (min !== undefined) schema = schema.min(min, `${field.label} must be at least ${min}`);
             if (max !== undefined) schema = schema.max(max, `${field.label} must be at most ${max}`);
             if (integer) schema = schema.int(`${field.label} must be a whole number`);
-            shape[field.name] = required ? schema : schema.optional();
+            shape[field.name] = required
+                ? schema
+                : z.preprocess(
+                    (val) => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : val),
+                    schema.optional()
+                  );
         } else {
             let schema: z.ZodString = z.string();
             if (required) schema = schema.min(1, `${field.label} is required`);

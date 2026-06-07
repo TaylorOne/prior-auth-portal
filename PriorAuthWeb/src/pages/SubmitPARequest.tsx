@@ -192,7 +192,7 @@ export default function SubmitPARequest() {
         display: selectedService?.displayName || data.serviceCode,
       },
       reasonCode: [data.indicationCode],
-      clinicalData: dynamicValues,
+      clinicalData: dynamicValidation.data,
       medicationRequest: requestType === "Medication" ? {
         medication: {
           code: data.serviceCode,
