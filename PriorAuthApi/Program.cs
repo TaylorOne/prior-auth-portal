@@ -61,6 +61,8 @@ app.UseCors("DevCors");
 app.UseExceptionHandler(exceptionApp => exceptionApp.Run(async context =>
 {
     var error = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    logger.LogError(error, "Unhandled exception: {Message}", error?.Message);
     if (error is BadHttpRequestException or System.Text.Json.JsonException)
     {
         context.Response.StatusCode = StatusCodes.Status400BadRequest;
