@@ -425,6 +425,7 @@ namespace PriorAuth.Data
                             "name": "priorNSAIDTrial",
                             "label": "Prior NSAID Trial Completed",
                             "description": "Confirm the patient has completed an adequate trial of at least one NSAID prior to initiating biologic therapy. NSAIDs are the required first-line therapy for Psoriatic Arthritis before biologics will be considered.",
+                            "type": "boolean",
                             "validation": { "required": true }
                             },
                             {
@@ -845,7 +846,7 @@ namespace PriorAuth.Data
                                     { "field": "priorMetforminTrial", "operator": "equals", "value": true },
                                     { "field": "metforminDurationWeeks", "operator": "gte", "value": 12 }
                                 ],
-                            "else": []
+                                "else": []
                             },
                             { "field": "diabetesEducationCompleted", "operator": "equals", "value": true }
                         ]
