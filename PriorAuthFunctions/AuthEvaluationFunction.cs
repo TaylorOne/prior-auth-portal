@@ -108,6 +108,14 @@ public class AuthEvaluationFunction
             ? Status.Approved
             : Status.Denied;
 
+        if (request.Status == Status.Denied)
+        {
+            request.EvaluationReason = JsonSerializer.Serialize(
+                decision.RuleResults
+                    .Where(r => !r.Passed)
+                    .Select(r => new { r.Field, r.FailureReason }));
+        }
+
         request.DeterminationDate = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(cancellationToken);

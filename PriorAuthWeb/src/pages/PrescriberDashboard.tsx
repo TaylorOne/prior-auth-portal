@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CheckCircle2, Clock3, FileText, Plus } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight, Clock3, FileText, Plus } from "lucide-react";
 import { getPriorAuthRequests } from "../api/PriorAuthApi";
 import type { PriorAuthSummary } from "../types/PriorAuth";
 import {
@@ -49,10 +49,14 @@ export default function PrescriberDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSubmittedToast, setShowSubmittedToast] = useState(false);
+  const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
 
   useEffect(() => {
     getPriorAuthRequests()
-      .then(setRequests)
+      .then((data) => {
+        console.log("[PrescriberDashboard] prior auth requests:", data);
+        setRequests(data);
+      })
       .catch(() => setError("Could not load prior authorization requests."))
       .finally(() => setLoading(false));
   }, []);
@@ -155,35 +159,77 @@ export default function PrescriberDashboard() {
                       <TableHead>Priority</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Submitted</TableHead>
-                      <TableHead>Determination</TableHead>
+                      <TableHead className="w-8" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {requests.map((r) => (
-                      <TableRow key={r.id}>
-                        <TableCell className="font-medium">{r.patientName}</TableCell>
-                        <TableCell>
-                          <span className="font-medium">{r.serviceCode}</span>
-                          <span className="block text-xs text-muted-foreground">
-                            {r.serviceCodeDisplay}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span>{r.practitionerName}</span>
-                          <span className="block text-xs text-muted-foreground">
-                            {r.specialty}
-                          </span>
-                        </TableCell>
-                        <TableCell className="capitalize">{r.priority}</TableCell>
-                        <TableCell>
-                          <Badge variant={statusVariant[r.status] ?? "default"}>
-                            {statusLabel[r.status] ?? r.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{formatDate(r.createdAt)}</TableCell>
-                        <TableCell>{formatDate(r.determinationDate)}</TableCell>
-                      </TableRow>
-                    ))}
+                    {requests.map((r) => {
+                      const isDenied = r.status === "Denied";
+                      const isExpanded = expandedRowId === r.id;
+                      const denialReasons: { Field: string; FailureReason: string }[] =
+                        isDenied && r.evaluationReason
+                          ? JSON.parse(r.evaluationReason)
+                          : [];
+
+                      return (
+                        <React.Fragment key={r.id}>
+                          <TableRow
+                            className={isDenied ? "cursor-pointer" : undefined}
+                            onClick={isDenied ? () => setExpandedRowId(isExpanded ? null : r.id) : undefined}
+                          >
+                            <TableCell className="font-medium">{r.patientName}</TableCell>
+                            <TableCell>
+                              <span className="font-medium">{r.serviceCode}</span>
+                              <span className="block text-xs text-muted-foreground">
+                                {r.serviceCodeDisplay}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span>{r.practitionerName}</span>
+                              <span className="block text-xs text-muted-foreground">
+                                {r.specialty}
+                              </span>
+                            </TableCell>
+                            <TableCell className="capitalize">{r.priority}</TableCell>
+                            <TableCell>
+                              <Badge variant={statusVariant[r.status] ?? "default"}>
+                                {statusLabel[r.status] ?? r.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{formatDate(r.createdAt)}</TableCell>
+                            <TableCell className="w-8 text-muted-foreground">
+                              {isDenied && (
+                                isExpanded
+                                  ? <ChevronDown className="size-4" />
+                                  : <ChevronRight className="size-4" />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                          {isDenied && isExpanded && (
+                            <TableRow key={`${r.id}-detail`} className="hover:bg-transparent">
+                              <TableCell colSpan={7} className="bg-muted/50 px-6 py-4">
+                                <div className="flex items-start gap-8">
+                                  <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-destructive">
+                                    Denial Reasons
+                                  </p>
+                                  {denialReasons.length > 0 ? (
+                                    <ul className="space-y-1">
+                                      {denialReasons.map((reason, i) => (
+                                        <li key={i} className="text-sm text-foreground">
+                                          {reason.FailureReason}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <p className="text-sm text-muted-foreground">No details available.</p>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

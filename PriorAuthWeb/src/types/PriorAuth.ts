@@ -9,4 +9,5 @@ export interface PriorAuthSummary {
   specialty: string;
   createdAt: string;
   determinationDate: string | null;
+  evaluationReason: string | null;
 }

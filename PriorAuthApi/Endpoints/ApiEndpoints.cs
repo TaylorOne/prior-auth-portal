@@ -63,7 +63,8 @@ namespace PriorAuthApi.Endpoints
                         $"Dr. {r.Practitioner.FirstName} {r.Practitioner.LastName}",
                         r.Practitioner.Specialty,
                         r.CreatedAt,
-                        r.DeterminationDate
+                        r.DeterminationDate,
+                        r.EvaluationReason
                     ))
                     .ToListAsync();
 

@@ -532,23 +532,7 @@ public class AuthEvaluationEngineTests
         }
         """;
 
-        var ruleDefinition = """
-        {
-            "rules": [
-                {
-                    "type": "conditional",
-                    "condition": { "field": "comorbidity", "operator": "equals", "value": true },
-                    "then": [
-                        { "field": "bmi", "operator": "gte", "value": 27 }
-                    ],
-                    "else": [
-                        { "field": "bmi", "operator": "gte", "value": 30 }
-                    ]
-                },
-                { "field": "priorWeightLossProgram", "operator": "equals", "value": true }
-            ]
-        }
-        """;
+        var ruleDefinition = WegovyRuleDefinition;
 
         var engine = new AuthEvaluationEngine();
         var decision = engine.Evaluate(clinicalData, ruleDefinition);
@@ -557,4 +541,95 @@ public class AuthEvaluationEngineTests
         Assert.Equal(2, decision.RuleResults.Count);
         Assert.All(decision.RuleResults, r => Assert.True(r.Passed));
     }
+
+    [Fact]
+    public void Evaluate_Wegovy_ComorbidityTrue_BMIBelow27_Denied()
+    {
+        var clinicalData = """
+        {
+            "bmi": 26,
+            "comorbidity": true,
+            "priorWeightLossProgram": true
+        }
+        """;
+
+        var engine = new AuthEvaluationEngine();
+        var decision = engine.Evaluate(clinicalData, WegovyRuleDefinition);
+
+        Assert.Equal(AuthOutcome.Denied, decision.Outcome);
+        Assert.False(decision.RuleResults[0].Passed);
+    }
+
+    [Fact]
+    public void Evaluate_Wegovy_NoComorbidity_BMIAtThreshold_Approved()
+    {
+        var clinicalData = """
+        {
+            "bmi": 30,
+            "comorbidity": false,
+            "priorWeightLossProgram": true
+        }
+        """;
+
+        var engine = new AuthEvaluationEngine();
+        var decision = engine.Evaluate(clinicalData, WegovyRuleDefinition);
+
+        Assert.Equal(AuthOutcome.Approved, decision.Outcome);
+        Assert.All(decision.RuleResults, r => Assert.True(r.Passed));
+    }
+
+    [Fact]
+    public void Evaluate_Wegovy_NoComorbidity_BMIBelow30_Denied()
+    {
+        var clinicalData = """
+        {
+            "bmi": 29,
+            "comorbidity": false,
+            "priorWeightLossProgram": true
+        }
+        """;
+
+        var engine = new AuthEvaluationEngine();
+        var decision = engine.Evaluate(clinicalData, WegovyRuleDefinition);
+
+        Assert.Equal(AuthOutcome.Denied, decision.Outcome);
+        Assert.False(decision.RuleResults[0].Passed);
+    }
+
+    [Fact]
+    public void Evaluate_Wegovy_NoPriorWeightLossProgram_Denied()
+    {
+        var clinicalData = """
+        {
+            "bmi": 35,
+            "comorbidity": true,
+            "priorWeightLossProgram": false
+        }
+        """;
+
+        var engine = new AuthEvaluationEngine();
+        var decision = engine.Evaluate(clinicalData, WegovyRuleDefinition);
+
+        Assert.Equal(AuthOutcome.Denied, decision.Outcome);
+        Assert.True(decision.RuleResults[0].Passed);   // BMI passes
+        Assert.False(decision.RuleResults[1].Passed);  // priorWeightLossProgram fails
+    }
+
+    private const string WegovyRuleDefinition = """
+    {
+        "rules": [
+            {
+                "type": "conditional",
+                "condition": { "field": "comorbidity", "operator": "equals", "value": true },
+                "then": [
+                    { "field": "bmi", "operator": "gte", "value": 27 }
+                ],
+                "else": [
+                    { "field": "bmi", "operator": "gte", "value": 30 }
+                ]
+            },
+            { "field": "priorWeightLossProgram", "operator": "equals", "value": true }
+        ]
+    }
+    """;
 }

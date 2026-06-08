@@ -10,6 +10,7 @@ namespace PriorAuthApi.DTOs
         string PractitionerName,
         string Specialty,
         DateTime CreatedAt,
-        DateTime? DeterminationDate
+        DateTime? DeterminationDate,
+        string? EvaluationReason
     );
 }
