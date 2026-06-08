@@ -421,6 +421,7 @@ export default function SubmitPARequest() {
                       <Input
                         id={field.name}
                         type={field.type}
+                        min={field.type === "number" ? 0 : undefined}
                         value={(dynamicValues[field.name] as string | number) ?? ""}
                         disabled={field.editable === false}
                         aria-invalid={!!dynamicErrors[field.name]}
