@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle2, ChevronDown, ChevronRight, Clock3, FileText, Plus } from "lucide-react";
 import { getPriorAuthRequests } from "../api/PriorAuthApi";
+import { getFieldLabel } from "@/lib/fieldLabels";
 import type { PriorAuthSummary } from "../types/PriorAuth";
 import {
   Table,
@@ -216,7 +217,7 @@ export default function PrescriberDashboard() {
                                     <ul className="space-y-1">
                                       {denialReasons.map((reason, i) => (
                                         <li key={i} className="text-sm text-foreground">
-                                          {reason.FailureReason}
+                                          {reason.FailureReason.replace(reason.Field, getFieldLabel(reason.Field))}
                                         </li>
                                       ))}
                                     </ul>
