@@ -8,7 +8,6 @@ using PriorAuth.Data.Services;
 using PriorAuthApi.DTOs;
 using PriorAuthApi.Validators;
 
-
 namespace PriorAuthApi.Endpoints
 {
     public static class ApiEndpoints
@@ -64,13 +63,36 @@ namespace PriorAuthApi.Endpoints
                         r.Practitioner.Specialty,
                         r.CreatedAt,
                         r.DeterminationDate,
-                        r.EvaluationReason
+                        r.EvaluationReason,
+                        r.ReviewerNotes
                     ))
                     .ToListAsync();
 
                 return Results.Ok(requests);
             })
             .WithName("GetPriorAuthRequests");
+
+            app.MapGet("/priorauth/{id:int}", async (AppDbContext db, int id) =>
+            {
+                var r = await db.PriorAuthRequests
+                    .Include(r => r.Patient)
+                    .Include(r => r.Practitioner)
+                    .FirstOrDefaultAsync(r => r.Id == id);
+
+                if (r is null) return Results.NotFound();
+
+                return Results.Ok(new PriorAuthDetailDto(
+                    r.Id,
+                    r.Status.ToString(),
+                    $"{r.Patient.FirstName} {r.Patient.LastName}",
+                    $"Dr. {r.Practitioner.FirstName} {r.Practitioner.LastName}",
+                    r.ServiceCode,
+                    r.ServiceCodeDisplay ?? r.ServiceCode,
+                    r.CreatedAt,
+                    r.ClinicalData
+                ));
+            })
+            .WithName("GetPriorAuthDetail");
 
             app.MapPost("/priorauth", async (AppDbContext db, ServiceBusSender sender, AuditService audit, SubmitPriorAuthDto dto) =>
             {
@@ -180,6 +202,58 @@ namespace PriorAuthApi.Endpoints
                 return Results.Created($"/priorauth/{request.Id}", new { request.Id });
             })
             .WithName("SubmitPriorAuth");
+
+            app.MapPatch("/priorauth/{id}/decision", async (AppDbContext db, AuditService audit, int id, ReviewDecisionDto dto) =>
+            {
+                if (dto.Decision != "Approved" && dto.Decision != "Denied")
+                    return Results.BadRequest("Decision must be 'Approved' or 'Denied'.");
+
+                var request = await db.PriorAuthRequests.FindAsync(id);
+                if (request is null)
+                    return Results.NotFound();
+
+                if (request.Status != Status.UnderReview)
+                    return Results.BadRequest($"Request is not under review (current status: {request.Status}).");
+
+                var fromStatus = request.Status.ToString();
+                request.Status = dto.Decision == "Approved" ? Status.Approved : Status.Denied;
+                request.ReviewerNotes = dto.ReviewerNotes;
+                request.DeterminationDate = DateTime.UtcNow;
+                request.UpdatedAt = DateTime.UtcNow;
+
+                await db.SaveChangesAsync();
+
+                await audit.LogAsync(id, AuditEventTypes.StatusTransitioned, AuditActors.Reviewer,
+                    new { from = fromStatus, to = request.Status.ToString() });
+                await audit.LogAsync(id, AuditEventTypes.ManualReviewDecision, AuditActors.Reviewer,
+                    new { decision = request.Status.ToString(), reviewerNotes = dto.ReviewerNotes });
+
+                return Results.Ok(new { request.Id, Status = request.Status.ToString(), request.DeterminationDate });
+            })
+            .WithName("ReviewDecision");
+
+            app.MapGet("/priorauth/review-queue", async (AppDbContext db) =>
+            {
+                var requests = await db.PriorAuthRequests
+                    .Where(r => r.Status == Status.UnderReview)
+                    .Include(r => r.Patient)
+                    .Include(r => r.Practitioner)
+                    .OrderBy(r => r.CreatedAt)
+                    .Select(r => new {
+                        r.Id,
+                        r.Status,
+                        PatientName = r.Patient.FirstName + " " + r.Patient.LastName,
+                        PractitionerName = r.Practitioner.FirstName + " " + r.Practitioner.LastName,
+                        r.ServiceCode,
+                        r.ServiceCodeDisplay,
+                        r.CreatedAt,
+                        r.ClinicalData
+                    })
+                    .ToListAsync();
+
+                return Results.Ok(requests);
+            })
+            .WithName("GetReviewQueue");
 
             app.MapGet("/patients", async (AppDbContext db) =>
             {

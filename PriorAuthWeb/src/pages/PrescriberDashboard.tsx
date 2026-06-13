@@ -124,7 +124,7 @@ export default function PrescriberDashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-semibold">
-                {requests.filter((r) => r.status === "Submitted").length}
+                {requests.filter((r) => r.status === "UnderReview").length}
               </p>
             </CardContent>
           </Card>
@@ -167,9 +167,10 @@ export default function PrescriberDashboard() {
                     {requests.map((r) => {
                       const isDenied = r.status === "Denied";
                       const isExpanded = expandedRowId === r.id;
+                      const isManualReview = isDenied && !!r.reviewerNotes;
                       const denialReasons: { Field: string; FailureReason: string }[] =
-                        isDenied && r.evaluationReason
-                          ? JSON.parse(r.evaluationReason)
+                        isDenied && !isManualReview && r.evaluationReasons
+                          ? JSON.parse(r.evaluationReasons)
                           : [];
 
                       return (
@@ -213,7 +214,22 @@ export default function PrescriberDashboard() {
                                   <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-destructive">
                                     Denial Reasons
                                   </p>
-                                  {denialReasons.length > 0 ? (
+                                  {isManualReview ? (
+                                    <div className="grid grid-cols-2 gap-8">
+                                      <div>
+                                        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                          Reviewer Reason for Denial
+                                        </p>
+                                        <p className="text-sm text-foreground">{r.reviewerNotes}</p>
+                                      </div>
+                                      <div>
+                                        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                          Determination Date
+                                        </p>
+                                        <p className="text-sm text-foreground">{formatDate(r.determinationDate)}</p>
+                                      </div>
+                                    </div>
+                                  ) : denialReasons.length > 0 ? (
                                     <ul className="space-y-1">
                                       {denialReasons.map((reason, i) => (
                                         <li key={i} className="text-sm text-foreground">

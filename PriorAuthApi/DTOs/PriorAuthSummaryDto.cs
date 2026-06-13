@@ -11,6 +11,7 @@ namespace PriorAuthApi.DTOs
         string Specialty,
         DateTime CreatedAt,
         DateTime? DeterminationDate,
-        string? EvaluationReason
+        string? EvaluationReasons,
+        string? ReviewerNotes
     );
 }
