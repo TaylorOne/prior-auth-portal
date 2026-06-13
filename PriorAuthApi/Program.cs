@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Azure.Messaging.ServiceBus;
+using Microsoft.Identity.Web;
 using PriorAuth.Data;
 using PriorAuth.Data.Services;
 using PriorAuthApi.Services;
@@ -47,6 +48,9 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddMicrosoftIdentityWebApiAuthentication(builder.Configuration);
+builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<AuditService>();
 
 // Pre-warm managed identity token on startup
@@ -60,6 +64,15 @@ var app = builder.Build();
 app.MapOpenApi();
 
 app.UseCors("DevCors");
+app.UseAuthentication();
+app.UseAuthorization();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ReviewerOnly", p => p.RequireRole("Reviewer"));
+    options.AddPolicy("PrescriberOnly", p => p.RequireRole("Prescriber"));
+});
+
 
 app.UseExceptionHandler(exceptionApp => exceptionApp.Run(async context =>
 {

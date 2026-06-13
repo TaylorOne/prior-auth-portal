@@ -21,7 +21,8 @@ namespace PriorAuthApi.Endpoints
                     .FirstOrDefaultAsync();
 
                 return authRule is not null ? Results.Ok(AuthRuleResponseDto.FromEntity(authRule)) : Results.NotFound();
-            });
+            })
+            .RequireAuthorization("PrescriberOnly");
             
             app.MapGet("/authrules/codes", async (AppDbContext db) =>
             {
@@ -33,7 +34,8 @@ namespace PriorAuthApi.Endpoints
 
                 return Results.Ok(codes);
             })
-            .WithName("GetAuthRuleCodes");
+            .WithName("GetAuthRuleCodes")
+            .RequireAuthorization("PrescriberOnly");
 
             app.MapGet("/authrules/{code}/indications", async (AppDbContext db, string code) =>
             {
@@ -44,7 +46,8 @@ namespace PriorAuthApi.Endpoints
 
                 return Results.Ok(indications);
             })
-            .WithName("GetAuthRuleIndications");
+            .WithName("GetAuthRuleIndications")
+            .RequireAuthorization("PrescriberOnly");
 
             app.MapGet("/priorauth", async (AppDbContext db) =>
             {
@@ -70,7 +73,8 @@ namespace PriorAuthApi.Endpoints
 
                 return Results.Ok(requests);
             })
-            .WithName("GetPriorAuthRequests");
+            .WithName("GetPriorAuthRequests")
+            .RequireAuthorization("PrescriberOnly");
 
             app.MapGet("/priorauth/{id:int}", async (AppDbContext db, int id) =>
             {
@@ -92,7 +96,8 @@ namespace PriorAuthApi.Endpoints
                     r.ClinicalData
                 ));
             })
-            .WithName("GetPriorAuthDetail");
+            .WithName("GetPriorAuthDetail")
+            .RequireAuthorization("ReviewerOnly");
 
             app.MapPost("/priorauth", async (AppDbContext db, ServiceBusSender sender, AuditService audit, SubmitPriorAuthDto dto) =>
             {
@@ -201,7 +206,8 @@ namespace PriorAuthApi.Endpoints
 
                 return Results.Created($"/priorauth/{request.Id}", new { request.Id });
             })
-            .WithName("SubmitPriorAuth");
+            .WithName("SubmitPriorAuth")
+            .RequireAuthorization("PrescriberOnly");
 
             app.MapPatch("/priorauth/{id}/decision", async (AppDbContext db, AuditService audit, int id, ReviewDecisionDto dto) =>
             {
@@ -230,7 +236,8 @@ namespace PriorAuthApi.Endpoints
 
                 return Results.Ok(new { request.Id, Status = request.Status.ToString(), request.DeterminationDate });
             })
-            .WithName("ReviewDecision");
+            .WithName("ReviewDecision")
+            .RequireAuthorization("ReviewerOnly");
 
             app.MapGet("/priorauth/review-queue", async (AppDbContext db) =>
             {
@@ -253,7 +260,8 @@ namespace PriorAuthApi.Endpoints
 
                 return Results.Ok(requests);
             })
-            .WithName("GetReviewQueue");
+            .WithName("GetReviewQueue")
+            .RequireAuthorization("ReviewerOnly");
 
             app.MapGet("/patients", async (AppDbContext db) =>
             {
@@ -270,7 +278,8 @@ namespace PriorAuthApi.Endpoints
 
                 return Results.Ok(patients);
             })
-            .WithName("GetPatients");
+            .WithName("GetPatients")
+            .RequireAuthorization("PrescriberOnly");
 
             app.MapGet("/practitioners", async (AppDbContext db) =>
             {
@@ -285,7 +294,8 @@ namespace PriorAuthApi.Endpoints
 
                 return Results.Ok(practitioners);
             })
-            .WithName("GetPractitioners");
+            .WithName("GetPractitioners")
+            .RequireAuthorization("PrescriberOnly");
 
         }
     }
