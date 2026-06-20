@@ -55,7 +55,6 @@ export default function PrescriberDashboard() {
   useEffect(() => {
     getPriorAuthRequests()
       .then((data) => {
-        console.log("[PrescriberDashboard] prior auth requests:", data);
         setRequests(data);
       })
       .catch(() => setError("Could not load prior authorization requests."))

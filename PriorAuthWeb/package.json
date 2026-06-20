@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@azure/msal-browser": "^5.13.0",
+    "@azure/msal-react": "^5.4.4",
     "@fontsource-variable/inter": "^5.2.8",
     "@hookform/resolvers": "^5.2.2",
     "@tailwindcss/vite": "^4.2.2",
