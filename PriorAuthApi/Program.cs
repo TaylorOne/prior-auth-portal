@@ -49,7 +49,9 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddMicrosoftIdentityWebApiAuthentication(builder.Configuration);
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("ReviewerOnly", p => p.RequireRole("Reviewer"))
+    .AddPolicy("PrescriberOnly", p => p.RequireRole("Prescriber"));
 
 builder.Services.AddScoped<AuditService>();
 
@@ -66,13 +68,6 @@ app.MapOpenApi();
 app.UseCors("DevCors");
 app.UseAuthentication();
 app.UseAuthorization();
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("ReviewerOnly", p => p.RequireRole("Reviewer"));
-    options.AddPolicy("PrescriberOnly", p => p.RequireRole("Prescriber"));
-});
-
 
 app.UseExceptionHandler(exceptionApp => exceptionApp.Run(async context =>
 {
