@@ -34,7 +34,7 @@ function formatClinicalValue(value: unknown): string {
 const decisionSchema = z
   .object({
     decision: z.enum(["Approved", "Denied"], {
-      required_error: "Please select a decision.",
+      error: "Please select a decision.",
     }),
     reviewerNotes: z.string(),
   })
