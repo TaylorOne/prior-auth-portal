@@ -53,6 +53,7 @@ namespace PriorAuth.Data
                     FaxNumber = "717-555-0302",
                     Email = "jpatel@capitalrheum.example.com",
                     UserId = "seed-practitioner-003",
+                    EntraOid = Guid.Parse("9ab1633d-6567-4b01-984f-54cbe4287d8b"),
                     OrganizationId = capital.Id
                 },
                 new()
@@ -77,6 +78,7 @@ namespace PriorAuth.Data
                     FaxNumber = "717-555-0502",
                     Email = "rharmon@susquehannacard.example.com",
                     UserId = "seed-practitioner-005",
+                    EntraOid = Guid.Parse("8bcc7fb1-a5fc-469c-b0ee-c3143f04f213"),
                     OrganizationId = susquehanna.Id
                 }
             };
