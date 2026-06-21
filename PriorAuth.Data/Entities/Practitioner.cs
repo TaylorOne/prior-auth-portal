@@ -15,5 +15,6 @@ namespace PriorAuth.Data.Entities
         public Organization Organization { get; set; } = null!;
         
         public string UserId { get; set; } = string.Empty;
+        public Guid? EntraOid { get; set; }
     }
 }
