@@ -1,7 +1,13 @@
+using System.Security.Claims;
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Azure.Messaging.ServiceBus;
 using PriorAuth.Data;
 using PriorAuth.Data.Entities;
@@ -12,6 +18,8 @@ namespace PriorAuthApi.Tests
 {
     public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
     {
+        private const string TestAuthScheme = "Test";
+
         private static readonly string TestConnectionString =
             Environment.GetEnvironmentVariable("TEST_CONNECTION_STRING")
             ?? "Server=(localdb)\\mssqllocaldb;Database=PriorAuthDb_Test;Trusted_Connection=True;TrustServerCertificate=True;";
@@ -20,8 +28,16 @@ namespace PriorAuthApi.Tests
         {
             builder.UseEnvironment("Testing");
 
-            builder.ConfigureServices(services =>
+            builder.ConfigureTestServices(services =>
             {
+                services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = TestAuthScheme;
+                    options.DefaultChallengeScheme = TestAuthScheme;
+                    options.DefaultScheme = TestAuthScheme;
+                })
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthScheme, _ => { });
+
                 // Remove the dev DbContext registration
                 var descriptor = services.SingleOrDefault(d => 
                     d.ServiceType == typeof(DbContextOptions<AppDbContext>));
@@ -106,6 +122,30 @@ namespace PriorAuthApi.Tests
             using var scope = Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             await db.Database.EnsureDeletedAsync();
+        }
+    }
+
+    public class TestAuthHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder)
+        : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+    {
+        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+        {
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, "test-user"),
+                new Claim(ClaimTypes.Name, "Test User"),
+                new Claim(ClaimTypes.Role, "Prescriber"),
+                new Claim(ClaimTypes.Role, "Reviewer")
+            };
+
+            var identity = new ClaimsIdentity(claims, Scheme.Name);
+            var principal = new ClaimsPrincipal(identity);
+            var ticket = new AuthenticationTicket(principal, Scheme.Name);
+
+            return Task.FromResult(AuthenticateResult.Success(ticket));
         }
     }
 }
