@@ -7,6 +7,7 @@ using PriorAuth.Data.Entities;
 using PriorAuth.Data.Services;
 using PriorAuthApi.DTOs;
 using PriorAuthApi.Validators;
+using PriorAuthApi.Services;
 
 namespace PriorAuthApi.Endpoints
 {
@@ -99,7 +100,13 @@ namespace PriorAuthApi.Endpoints
             .WithName("GetPriorAuthDetail")
             .RequireAuthorization("ReviewerOnly");
 
-            app.MapPost("/priorauth", async (AppDbContext db, ServiceBusSender sender, AuditService audit, SubmitPriorAuthDto dto) =>
+            app.MapPost("/priorauth", async (
+                AppDbContext db,
+                ServiceBusSender sender,
+                AuditService audit,
+                IPractitionerResolver resolver,
+                CancellationToken ct,
+                SubmitPriorAuthDto dto) =>
             {
                 if (dto.Code == null || string.IsNullOrEmpty(dto.Code.Code))
                 {
@@ -134,11 +141,11 @@ namespace PriorAuthApi.Endpoints
                     return Results.BadRequest($"Patient with ID {dto.PatientId} does not exist.");
                 }
 
-                var practitionerExists = await db.Practitioners.AnyAsync(p => p.Id == dto.PractitionerId);
-                if (!practitionerExists)
-                {
-                    return Results.BadRequest($"Practitioner with ID {dto.PractitionerId} does not exist.");
-                }
+                var practitioner = await resolver.ResolveCurrentAsync(ct);
+                if (practitioner is null)
+                    return Results.Problem(
+                        "Authenticated user is not linked to a practitioner record.",
+                        statusCode: StatusCodes.Status403Forbidden);
 
                 var request = new PriorAuthRequest
                 {
@@ -148,7 +155,7 @@ namespace PriorAuthApi.Endpoints
                     Priority = dto.Priority,
                     Status = Status.Submitted,
                     PatientId = dto.PatientId,
-                    PractitionerId = dto.PractitionerId,
+                    PractitionerId = practitioner.Id,
                     ClinicalData = dto.ClinicalData is not null
                         ? JsonSerializer.Serialize(dto.ClinicalData)
                         : string.Empty,

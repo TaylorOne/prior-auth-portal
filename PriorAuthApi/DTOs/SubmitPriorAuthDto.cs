@@ -6,7 +6,6 @@ namespace PriorAuthApi.DTOs
         string Priority,                              // "routine" | "urgent"
         CodeableConceptDto Code,                      // CPT or HCPCS
         int PatientId,
-        int PractitionerId,
         IList<string> ReasonCode,         // ICD-10 indication(s)
         Dictionary<string, JsonElement>? ClinicalData, // FormDefinition-keyed responses
         MedicationRequestDto? MedicationRequest       // null for procedure/diagnostic PAs
