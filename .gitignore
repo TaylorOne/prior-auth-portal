@@ -425,3 +425,10 @@ FodyWeavers.xsd
 local.settings.json
 
 devlog.md
+
+# Azurite (local Azure Storage emulator)
+__blobstorage__/
+__queuestorage__/
+__tablestorage__/
+__azurite_db*.json
+AzuriteConfig
