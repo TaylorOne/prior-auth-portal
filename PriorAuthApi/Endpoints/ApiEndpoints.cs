@@ -288,22 +288,6 @@ namespace PriorAuthApi.Endpoints
             .WithName("GetPatients")
             .RequireAuthorization("PrescriberOnly");
 
-            app.MapGet("/practitioners", async (AppDbContext db) =>
-            {
-                var practitioners = await db.Practitioners
-                    .Select(p => new PractitionerSummaryDto(
-                        p.Id,
-                        $"Dr. {p.FirstName} {p.LastName}",
-                        p.Npi,
-                        p.Specialty
-                    ))
-                    .ToListAsync();
-
-                return Results.Ok(practitioners);
-            })
-            .WithName("GetPractitioners")
-            .RequireAuthorization("PrescriberOnly");
-
             app.MapGet("/practitioners/me", async (IPractitionerResolver resolver, CancellationToken ct) =>
             {
                 var practitioner = await resolver.ResolveCurrentAsync(ct);
@@ -323,7 +307,7 @@ namespace PriorAuthApi.Endpoints
             })
             .WithName("GetCurrentPractitioner")
             .RequireAuthorization("PrescriberOnly");
-            
+
         }
     }
 }
