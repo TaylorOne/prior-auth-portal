@@ -26,11 +26,6 @@ namespace PriorAuthApi.Validators
                 .GreaterThan(0)
                 .WithMessage("PatientId must be a positive integer.");
 
-            RuleFor(x => x.PractitionerId)
-                .NotNull()
-                .GreaterThan(0)
-                .WithMessage("PractitionerId must be a positive integer.");
-
             RuleForEach(x => x.ReasonCode)
                 .NotEmpty()
                 .WithMessage("Reason codes cannot be empty.");

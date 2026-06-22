@@ -304,6 +304,26 @@ namespace PriorAuthApi.Endpoints
             .WithName("GetPractitioners")
             .RequireAuthorization("PrescriberOnly");
 
+            app.MapGet("/practitioners/me", async (IPractitionerResolver resolver, CancellationToken ct) =>
+            {
+                var practitioner = await resolver.ResolveCurrentAsync(ct);
+                if (practitioner is null)
+                    return Results.Problem(
+                        "Authenticated user is not linked to a practitioner record.",
+                        statusCode: StatusCodes.Status403Forbidden);
+
+                var dto = new PractitionerSummaryDto(
+                    practitioner.Id,
+                    $"Dr. {practitioner.FirstName} {practitioner.LastName}",
+                    practitioner.Npi,
+                    practitioner.Specialty
+                );
+
+                return Results.Ok(dto);
+            })
+            .WithName("GetCurrentPractitioner")
+            .RequireAuthorization("PrescriberOnly");
+            
         }
     }
 }
