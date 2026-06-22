@@ -6,9 +6,9 @@ import { AlertTriangle, Info, Loader2, Send } from "lucide-react";
 import { z } from "zod";
 import {
   getAuthRuleForServiceCode,
+  getCurrentPractitioner,
   getIndications,
   getPatients,
-  getPractitioners,
   getServiceCodes,
   submitPriorAuthRequest,
 } from "../api/PriorAuthApi";
@@ -71,7 +71,7 @@ function FieldLabel({
 
 export default function SubmitPARequest() {
   const navigate = useNavigate();
-  const [practitioners, setPractitioners] = useState<Practitioner[]>([]);
+  const [currentPractitioner, setCurrentPractitioner] = useState<Practitioner | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [serviceCodes, setServiceCodes] = useState<ServiceCode[]>([]);
   const [indications, setIndications] = useState<Indication[]>([]);
@@ -98,9 +98,9 @@ export default function SubmitPARequest() {
   const selectedIndicationCode = watch("indicationCode");
 
   useEffect(() => {
-    Promise.all([getPractitioners(), getPatients(), getServiceCodes()])
+    Promise.all([getCurrentPractitioner(), getPatients(), getServiceCodes()])
       .then(([pr, p, s]) => {
-        setPractitioners(pr);
+        setCurrentPractitioner(pr);
         setPatients(p);
         setServiceCodes(s);
       })
@@ -184,7 +184,7 @@ export default function SubmitPARequest() {
     const selectedService = serviceCodes.find((s) => s.code === data.serviceCode);
     const request: AuthRequest = {
       patientId: data.patientId,
-      practitionerId: data.practitionerId,
+      practitionerId: currentPractitioner!.id,
       priority: "routine",
       code: {
         code: data.serviceCode,
@@ -272,23 +272,12 @@ export default function SubmitPARequest() {
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
-                <FieldLabel htmlFor="practitionerId" label="Practitioner" />
-                <Select
-                  id="practitionerId"
-                  defaultValue=""
-                  aria-invalid={!!errors.practitionerId}
-                  {...register("practitionerId")}
-                >
-                  <option value="" disabled>Select a practitioner...</option>
-                  {practitioners.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.fullName} - {p.specialty}
-                    </option>
-                  ))}
-                </Select>
-                {errors.practitionerId && (
-                  <p className="text-xs text-destructive">{errors.practitionerId.message}</p>
-                )}
+                <FieldLabel htmlFor="" label="Practitioner" />
+                <div className="flex h-9 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+                  {currentPractitioner
+                    ? `${currentPractitioner.fullName} — ${currentPractitioner.specialty}`
+                    : "Loading..."}
+                </div>
               </div>
 
               <div className="space-y-2">
