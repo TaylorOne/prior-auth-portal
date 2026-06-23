@@ -45,6 +45,11 @@ namespace PriorAuth.Data
                 .WithMany()
                 .HasForeignKey(a => a.PriorAuthRequestId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Practitioner>()
+                .HasIndex(p => p.EntraOid)
+                .IsUnique()
+                .HasFilter("[EntraOid] IS NOT NULL");
         }
     }
 }

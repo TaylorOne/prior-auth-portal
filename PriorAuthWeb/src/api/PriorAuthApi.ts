@@ -51,9 +51,9 @@ export async function getPatients(): Promise<Patient[]> {
   return response.json();
 }
 
-export async function getPractitioners(): Promise<Practitioner[]> {
-  const response = await fetch(`${BASE_URL}/practitioners`, { headers: await authHeaders() });
-  if (!response.ok) throw new Error("Failed to fetch practitioners");
+export async function getCurrentPractitioner(): Promise<Practitioner> {
+  const response = await fetch(`${BASE_URL}/practitioners/me`, { headers: await authHeaders() });
+  if (!response.ok) throw new Error("Failed to fetch current practitioner");
   return response.json();
 }
 

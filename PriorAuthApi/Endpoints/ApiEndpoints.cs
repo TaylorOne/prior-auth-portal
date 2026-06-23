@@ -7,6 +7,7 @@ using PriorAuth.Data.Entities;
 using PriorAuth.Data.Services;
 using PriorAuthApi.DTOs;
 using PriorAuthApi.Validators;
+using PriorAuthApi.Services;
 
 namespace PriorAuthApi.Endpoints
 {
@@ -99,7 +100,13 @@ namespace PriorAuthApi.Endpoints
             .WithName("GetPriorAuthDetail")
             .RequireAuthorization("ReviewerOnly");
 
-            app.MapPost("/priorauth", async (AppDbContext db, ServiceBusSender sender, AuditService audit, SubmitPriorAuthDto dto) =>
+            app.MapPost("/priorauth", async (
+                AppDbContext db,
+                ServiceBusSender sender,
+                AuditService audit,
+                IPractitionerResolver resolver,
+                CancellationToken ct,
+                SubmitPriorAuthDto dto) =>
             {
                 if (dto.Code == null || string.IsNullOrEmpty(dto.Code.Code))
                 {
@@ -134,11 +141,11 @@ namespace PriorAuthApi.Endpoints
                     return Results.BadRequest($"Patient with ID {dto.PatientId} does not exist.");
                 }
 
-                var practitionerExists = await db.Practitioners.AnyAsync(p => p.Id == dto.PractitionerId);
-                if (!practitionerExists)
-                {
-                    return Results.BadRequest($"Practitioner with ID {dto.PractitionerId} does not exist.");
-                }
+                var practitioner = await resolver.ResolveCurrentAsync(ct);
+                if (practitioner is null)
+                    return Results.Problem(
+                        "Authenticated user is not linked to a practitioner record.",
+                        statusCode: StatusCodes.Status403Forbidden);
 
                 var request = new PriorAuthRequest
                 {
@@ -148,7 +155,7 @@ namespace PriorAuthApi.Endpoints
                     Priority = dto.Priority,
                     Status = Status.Submitted,
                     PatientId = dto.PatientId,
-                    PractitionerId = dto.PractitionerId,
+                    PractitionerId = practitioner.Id,
                     ClinicalData = dto.ClinicalData is not null
                         ? JsonSerializer.Serialize(dto.ClinicalData)
                         : string.Empty,
@@ -281,20 +288,24 @@ namespace PriorAuthApi.Endpoints
             .WithName("GetPatients")
             .RequireAuthorization("PrescriberOnly");
 
-            app.MapGet("/practitioners", async (AppDbContext db) =>
+            app.MapGet("/practitioners/me", async (IPractitionerResolver resolver, CancellationToken ct) =>
             {
-                var practitioners = await db.Practitioners
-                    .Select(p => new PractitionerSummaryDto(
-                        p.Id,
-                        $"Dr. {p.FirstName} {p.LastName}",
-                        p.Npi,
-                        p.Specialty
-                    ))
-                    .ToListAsync();
+                var practitioner = await resolver.ResolveCurrentAsync(ct);
+                if (practitioner is null)
+                    return Results.Problem(
+                        "Authenticated user is not linked to a practitioner record.",
+                        statusCode: StatusCodes.Status403Forbidden);
 
-                return Results.Ok(practitioners);
+                var dto = new PractitionerSummaryDto(
+                    practitioner.Id,
+                    $"Dr. {practitioner.FirstName} {practitioner.LastName}",
+                    practitioner.Npi,
+                    practitioner.Specialty
+                );
+
+                return Results.Ok(dto);
             })
-            .WithName("GetPractitioners")
+            .WithName("GetCurrentPractitioner")
             .RequireAuthorization("PrescriberOnly");
 
         }

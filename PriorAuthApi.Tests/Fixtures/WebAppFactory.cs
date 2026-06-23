@@ -19,6 +19,7 @@ namespace PriorAuthApi.Tests
     public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
     {
         private const string TestAuthScheme = "Test";
+        internal const string TestPractitionerOid = "00000000-0000-0000-0000-000000000001";
 
         private static readonly string TestConnectionString =
             Environment.GetEnvironmentVariable("TEST_CONNECTION_STRING")
@@ -109,7 +110,8 @@ namespace PriorAuthApi.Tests
             {
                 FirstName = "Test",
                 LastName = "Practitioner",
-                OrganizationId = org.Id
+                OrganizationId = org.Id,
+                EntraOid = new Guid(TestPractitionerOid)
             });
 
             await db.SaveChangesAsync();
@@ -138,7 +140,8 @@ namespace PriorAuthApi.Tests
                 new Claim(ClaimTypes.NameIdentifier, "test-user"),
                 new Claim(ClaimTypes.Name, "Test User"),
                 new Claim(ClaimTypes.Role, "Prescriber"),
-                new Claim(ClaimTypes.Role, "Reviewer")
+                new Claim(ClaimTypes.Role, "Reviewer"),
+                new Claim("oid", WebAppFactory.TestPractitionerOid)
             };
 
             var identity = new ClaimsIdentity(claims, Scheme.Name);

@@ -1,0 +1,147 @@
+@baseUrl = http://localhost:5054
+
+### ── Auth Rules ──────────────────────────────────────────────────────────────
+
+### Get all active auth rule codes
+GET {{baseUrl}}/authrules/codes
+
+###
+
+### Get indications for a specific code
+GET {{baseUrl}}/authrules/J0135/indications
+
+###
+
+### Get a specific auth rule (code + indication)
+GET {{baseUrl}}/authrules/J0135/M06.9
+
+###
+
+### ── Patients & Practitioners ────────────────────────────────────────────────
+
+### Get all patients
+GET {{baseUrl}}/patients
+
+###
+
+### Get all practitioners
+GET {{baseUrl}}/practitioners
+
+###
+
+### ── Prior Auth Requests ──────────────────────────────────────────────────────
+
+### Get all prior auth requests
+GET {{baseUrl}}/priorauth
+
+###
+
+### Get a specific prior auth request by ID
+GET {{baseUrl}}/priorauth/1
+
+###
+
+### Get the manual review queue
+GET {{baseUrl}}/priorauth/review-queue
+
+###
+
+### Submit a prior auth — procedure (no medication)
+POST {{baseUrl}}/priorauth
+Content-Type: application/json
+
+{
+  "priority": "routine",
+  "code": {
+    "system": "http://www.ama-assn.org/go/cpt",
+    "code": "73721",
+    "display": "MRI any joint of lower extremity"
+  },
+  "patientId": 1,
+  "practitionerId": 1,
+  "reasonCode": ["M17.11"],
+  "clinicalData": null,
+  "medicationRequest": null
+}
+
+###
+
+### Submit a prior auth — medication (Wegovy / semaglutide)
+POST {{baseUrl}}/priorauth
+Content-Type: application/json
+
+{
+  "priority": "routine",
+  "code": {
+    "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+    "code": "2200027",
+    "display": "Wegovy"
+  },
+  "patientId": 1,
+  "practitionerId": 1,
+  "reasonCode": ["E66.01"],
+  "clinicalData": {
+    "bmi": 32.5,
+    "priorWeightLossAttempts": true
+  },
+  "medicationRequest": {
+    "medication": {
+      "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+      "code": "2200027",
+      "display": "semaglutide 2.4 mg/dose subcutaneous injection"
+    },
+    "intent": "order",
+    "dosageInstructionText": "Inject 2.4 mg subcutaneously once weekly",
+    "quantityValue": 1.5,
+    "quantityUnit": "mL",
+    "numberOfRepeatsAllowed": 11,
+    "expectedSupplyDurationDays": 30,
+    "substitutionAllowed": false,
+    "substitutionReason": null,
+    "note": null
+  }
+}
+
+###
+
+### Submit a prior auth — urgent priority
+POST {{baseUrl}}/priorauth
+Content-Type: application/json
+
+{
+  "priority": "urgent",
+  "code": {
+    "system": "http://www.ama-assn.org/go/cpt",
+    "code": "27447",
+    "display": "Total knee arthroplasty"
+  },
+  "patientId": 2,
+  "practitionerId": 1,
+  "reasonCode": ["M17.11"],
+  "clinicalData": null,
+  "medicationRequest": null
+}
+
+###
+
+### ── Review Decisions ─────────────────────────────────────────────────────────
+
+### Approve a prior auth request
+PATCH {{baseUrl}}/priorauth/1/decision
+Content-Type: application/json
+
+{
+  "decision": "Approved",
+  "reviewerNotes": "Clinical documentation supports medical necessity."
+}
+
+###
+
+### Deny a prior auth request
+PATCH {{baseUrl}}/priorauth/1/decision
+Content-Type: application/json
+
+{
+  "decision": "Denied",
+  "reviewerNotes": "Insufficient documentation of conservative treatment failure."
+}

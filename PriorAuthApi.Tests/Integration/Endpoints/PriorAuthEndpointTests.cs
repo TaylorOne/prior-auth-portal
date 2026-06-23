@@ -22,7 +22,6 @@ namespace PriorAuthApi.Tests
                 Priority: "routine",
                 Code: new CodeableConceptDto("HCPCS", "J0135", "Adalimumab injection"),
                 PatientId: 1,
-                PractitionerId: 1,
                 ReasonCode: ["M06.9"],
                 ClinicalData: new Dictionary<string, JsonElement>
                 {
