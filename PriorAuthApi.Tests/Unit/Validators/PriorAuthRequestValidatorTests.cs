@@ -221,7 +221,6 @@ namespace PriorAuthApi.Tests.Unit.Validators
                     scenario.AuthRule.Code,
                     scenario.AuthRule.DisplayName),
                 PatientId: 1,
-                PractitionerId: 1,
                 ReasonCode: [scenario.AuthRule.IndicationCode],
                 ClinicalData: clinicalData ?? CopyClinicalData(scenario.ValidClinicalData),
                 MedicationRequest: null
