@@ -4,6 +4,6 @@ namespace PriorAuthApi.DTOs
         int Id,
         string FullName,
         string Npi,
-        string Specialty
+        PriorAuth.Data.Entities.Specialty Specialty
     );
 }

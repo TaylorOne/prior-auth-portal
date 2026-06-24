@@ -10,7 +10,7 @@ namespace PriorAuth.Data.Entities
         public string? Email { get; set; }
         public string? FaxNumber { get; set; }
 
-        public string Specialty { get; set; } = string.Empty;
+        public Specialty Specialty { get; set; }
         public int OrganizationId { get; set; }
         public Organization Organization { get; set; } = null!;
         

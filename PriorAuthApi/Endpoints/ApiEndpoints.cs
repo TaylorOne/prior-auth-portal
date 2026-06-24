@@ -64,7 +64,7 @@ namespace PriorAuthApi.Endpoints
                         r.ServiceCodeDisplay ?? r.ServiceCode,
                         $"{r.Patient.FirstName} {r.Patient.LastName}",
                         $"Dr. {r.Practitioner.FirstName} {r.Practitioner.LastName}",
-                        r.Practitioner.Specialty,
+                        r.Practitioner.Specialty.ToString(),
                         r.CreatedAt,
                         r.DeterminationDate,
                         r.EvaluationReason,

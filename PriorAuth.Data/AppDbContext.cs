@@ -47,6 +47,10 @@ namespace PriorAuth.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Practitioner>()
+                .Property(p => p.Specialty)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Practitioner>()
                 .HasIndex(p => p.EntraOid)
                 .IsUnique()
                 .HasFilter("[EntraOid] IS NOT NULL");
