@@ -40,6 +40,10 @@ namespace PriorAuth.Data
                 .Property(a => a.RequiresManualReview)
                 .HasDefaultValue(false);
 
+            modelBuilder.Entity<AuthRule>()
+                .Property(a => a.RequiredSpecialty)
+                .HasConversion<string>();
+
             modelBuilder.Entity<AuditEvent>()
                 .HasOne(a => a.Request)
                 .WithMany()

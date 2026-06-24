@@ -14,7 +14,8 @@ namespace PriorAuthApi.DTOs
         public JsonElement FormDefinition { get; init; }
         public JsonElement RuleDefinition { get; init; }
         public bool IsActive { get; init; }
-        public bool RequiresManualReview { get; init;}
+        public bool RequiresManualReview { get; init; }
+        public Specialty? RequiredSpecialty { get; init; }
         public DateOnly EffectiveDate { get; init; }
         public DateOnly CreatedAt { get; init; }
 
@@ -30,6 +31,7 @@ namespace PriorAuthApi.DTOs
             RuleDefinition = JsonSerializer.Deserialize<JsonElement>(rule.RuleDefinition),
             IsActive = rule.IsActive,
             RequiresManualReview = rule.RequiresManualReview,
+            RequiredSpecialty = rule.RequiredSpecialty,
             EffectiveDate = rule.EffectiveDate,
             CreatedAt = rule.CreatedAt
         };
