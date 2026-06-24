@@ -147,6 +147,12 @@ namespace PriorAuthApi.Endpoints
                         "Authenticated user is not linked to a practitioner record.",
                         statusCode: StatusCodes.Status403Forbidden);
 
+                if (authRule.RequiredSpecialty is not null && authRule.RequiredSpecialty != practitioner.Specialty)
+                    return Results.Problem(
+                        $"This authorization rule requires {authRule.RequiredSpecialty} specialty. " +
+                        $"Your specialty is {practitioner.Specialty}.",
+                        statusCode: StatusCodes.Status400BadRequest);
+
                 var request = new PriorAuthRequest
                 {
                     ServiceCode = dto.Code.Code,

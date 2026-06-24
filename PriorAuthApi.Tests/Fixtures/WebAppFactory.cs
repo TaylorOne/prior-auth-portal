@@ -65,6 +65,7 @@ namespace PriorAuthApi.Tests
 
         private static async Task SeedTestDataAsync(AppDbContext db)
         {
+            // Rheumatology rule — matches the test practitioner's specialty
             db.AuthRules.Add(new AuthRule
             {
                 Code = "J0135",
@@ -73,6 +74,7 @@ namespace PriorAuthApi.Tests
                 DisplayName = "Adalimumab (Humira)",
                 IndicationDisplayName = "Rheumatoid Arthritis",
                 IsActive = true,
+                RequiredSpecialty = Specialty.Rheumatology,
                 FormDefinition = """
                 {
                     "fields": [
@@ -90,6 +92,20 @@ namespace PriorAuthApi.Tests
                     "minDMARDWeeks": 12
                 }
                 """,
+            });
+
+            // Oncology rule — used to verify specialty mismatch rejection
+            db.AuthRules.Add(new AuthRule
+            {
+                Code = "81162",
+                CodeSystem = "CPT",
+                IndicationCode = "Z15.01",
+                DisplayName = "Genetic Testing (BRCA)",
+                IndicationDisplayName = "Hereditary Breast/Ovarian Cancer",
+                IsActive = true,
+                RequiredSpecialty = Specialty.Oncology,
+                FormDefinition = """{ "fields": [] }""",
+                RuleDefinition = """{ "rules": [] }""",
             });
 
             var org = new Organization
@@ -110,6 +126,7 @@ namespace PriorAuthApi.Tests
             {
                 FirstName = "Test",
                 LastName = "Practitioner",
+                Specialty = Specialty.Rheumatology,
                 OrganizationId = org.Id,
                 EntraOid = new Guid(TestPractitionerOid)
             });
