@@ -113,6 +113,7 @@ export async function submitPriorAuthRequest(priorAuthRequest: AuthRequest): Pro
     const body = await response.json().catch(() => null);
     const message =
       body?.errors?.join(", ") ??
+      body?.detail ??
       body?.error ??
       (typeof body === "string" ? body : "Failed to submit prior auth request");
     throw new Error(message);

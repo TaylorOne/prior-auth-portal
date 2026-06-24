@@ -78,6 +78,7 @@ export default function SubmitPARequest() {
   const [loadingForm, setLoadingForm] = useState(true);
   const [loadingIndications, setLoadingIndications] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
   const [dynamicValues, setDynamicValues] = useState<Record<string, string | number | boolean>>({});
   const [dynamicErrors, setDynamicErrors] = useState<Record<string, string>>({});
@@ -124,6 +125,7 @@ export default function SubmitPARequest() {
     setDynamicValues({});
     setDynamicErrors({});
     setRequiresManualReview(false);
+    setSubmitError(null);
 
     getIndications(selectedServiceCode)
       .then((results) => {
@@ -221,8 +223,9 @@ export default function SubmitPARequest() {
         replace: true,
       });
     } catch (error) {
-      console.error("Submission error:", error);
-      alert("Failed to submit prior auth request.");
+      const message = error instanceof Error ? error.message : "Failed to submit prior auth request.";
+      setSubmitError(message);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -309,11 +312,16 @@ export default function SubmitPARequest() {
                   {...register("serviceCode")}
                 >
                   <option value="" disabled>Select a service...</option>
-                  {serviceCodes.map((s) => (
-                    <option key={s.code} value={s.code}>
-                      {s.code} - {s.displayName}
-                    </option>
-                  ))}
+                  {serviceCodes
+                    .filter((s) =>
+                      !s.requiredSpecialty ||
+                      s.requiredSpecialty === currentPractitioner?.specialty
+                    )
+                    .map((s) => (
+                      <option key={s.code} value={s.code}>
+                        {s.code} - {s.displayName}
+                      </option>
+                    ))}
                 </Select>
                 {errors.serviceCode && (
                   <p className="text-xs text-destructive">{errors.serviceCode.message}</p>
@@ -430,6 +438,13 @@ export default function SubmitPARequest() {
                 ))}
               </CardContent>
             </Card>
+          )}
+
+          {submitError && (
+            <div className="flex items-center gap-2 rounded-md border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              <AlertTriangle className="size-4 shrink-0" />
+              {submitError}
+            </div>
           )}
 
           <div className="flex justify-end">
