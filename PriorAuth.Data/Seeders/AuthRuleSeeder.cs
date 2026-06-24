@@ -20,6 +20,7 @@ namespace PriorAuth.Data
                     DisplayName = "MRI Knee without Contrast",
                     IndicationCode = "M25.561",
                     IndicationDisplayName = "Knee pain",
+                    RequiredSpecialty = Specialty.Orthopedics,
                     FormDefinition = """
                     {
                         "fields": [
@@ -68,6 +69,7 @@ namespace PriorAuth.Data
                     IndicationCode = "Z15.01",
                     IndicationDisplayName = "Hereditary Breast/Ovarian Cancer (BRCA1/BRCA2)",
                     RequiresManualReview = true,
+                    RequiredSpecialty = Specialty.Oncology,
                     FormDefinition = """
                     {
                         "fields": [
@@ -115,6 +117,7 @@ namespace PriorAuth.Data
                     IndicationCode = "E66.9",
                     IndicationDisplayName = "Chronic Weight Management",
                     RequiresManualReview = true,
+                    RequiredSpecialty = Specialty.Endocrinology,
                     FormDefinition = """
                     {
                         "fields": [
@@ -217,6 +220,7 @@ namespace PriorAuth.Data
                     DisplayName = "Xarelto (rivaroxaban)",
                     IndicationCode = "I48.91",
                     IndicationDisplayName = "Atrial Fibrillation",
+                    RequiredSpecialty = Specialty.Cardiology,
                     FormDefinition = """
                     {
                         "fields": [
@@ -317,6 +321,7 @@ namespace PriorAuth.Data
                     IndicationCode = "M06.9",
                     IndicationDisplayName = "Rheumatoid Arthritis",
                     RequiresManualReview = true,
+                    RequiredSpecialty = Specialty.Rheumatology,
                     FormDefinition = """
                     {
                         "fields": [
@@ -418,6 +423,7 @@ namespace PriorAuth.Data
                     DisplayName = "Humira (adalimumab)",
                     IndicationCode = "L40.50",
                     IndicationDisplayName = "Psoriatic Arthritis",
+                    RequiredSpecialty = Specialty.Rheumatology,
                     FormDefinition = """
                     {
                         "fields": [
@@ -525,6 +531,7 @@ namespace PriorAuth.Data
                     DisplayName = "Humira (adalimumab)",
                     IndicationCode = "K50.90",
                     IndicationDisplayName = "Crohn's Disease",
+                    RequiredSpecialty = Specialty.Rheumatology,
                     FormDefinition = """
                     {
                         "fields": [
@@ -636,6 +643,7 @@ namespace PriorAuth.Data
                     DisplayName = "Xarelto (rivaroxaban)",
                     IndicationCode = "I82.401",
                     IndicationDisplayName = "Deep Vein Thrombosis",
+                    RequiredSpecialty = Specialty.Cardiology,
                     FormDefinition = """
                     {
                         "fields": [
@@ -743,6 +751,7 @@ namespace PriorAuth.Data
                     DisplayName = "Ozempic (semaglutide)",
                     IndicationCode = "E11.9",
                     IndicationDisplayName = "Type 2 Diabetes",
+                    RequiredSpecialty = Specialty.Endocrinology,
                     FormDefinition = """
                     {
                         "fields": [
