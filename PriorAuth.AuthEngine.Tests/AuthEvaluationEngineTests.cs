@@ -615,6 +615,92 @@ public class AuthEvaluationEngineTests
         Assert.False(decision.RuleResults[1].Passed);  // priorWeightLossProgram fails
     }
 
+    [Fact]
+    public void Evaluate_HasValueRule_NonStringValue_CountsAsValueInsteadOfThrowing()
+    {
+        var clinicalData = """{"reasonForSwitch": 5}""";
+
+        var ruleDefinition = """
+        {
+            "rules": [
+                { "field": "reasonForSwitch", "operator": "hasValue" }
+            ]
+        }
+        """;
+
+        var engine = new AuthEvaluationEngine();
+        var decision = engine.Evaluate(clinicalData, ruleDefinition);
+
+        Assert.Equal(AuthOutcome.Approved, decision.Outcome);
+        Assert.True(decision.RuleResults[0].Passed);
+    }
+
+    [Fact]
+    public void Evaluate_HasValueRule_NullValue_Fails()
+    {
+        var clinicalData = """{"reasonForSwitch": null}""";
+
+        var ruleDefinition = """
+        {
+            "rules": [
+                { "field": "reasonForSwitch", "operator": "hasValue" }
+            ]
+        }
+        """;
+
+        var engine = new AuthEvaluationEngine();
+        var decision = engine.Evaluate(clinicalData, ruleDefinition);
+
+        Assert.Equal(AuthOutcome.Denied, decision.Outcome);
+        Assert.False(decision.RuleResults[0].Passed);
+    }
+
+    [Fact]
+    public void Evaluate_ConditionalRule_MissingElseBranch_TreatedAsExcusedPath()
+    {
+        var clinicalData = """{"comorbidity": false, "priorWeightLossProgram": true}""";
+
+        var ruleDefinition = """
+        {
+            "rules": [
+                {
+                    "type": "conditional",
+                    "condition": { "field": "comorbidity", "operator": "equals", "value": true },
+                    "then": [
+                        { "field": "bmi", "operator": "gte", "value": 27 }
+                    ]
+                },
+                { "field": "priorWeightLossProgram", "operator": "equals", "value": true }
+            ]
+        }
+        """;
+
+        var engine = new AuthEvaluationEngine();
+        var decision = engine.Evaluate(clinicalData, ruleDefinition);
+
+        Assert.Equal(AuthOutcome.Approved, decision.Outcome);
+        Assert.Single(decision.RuleResults);
+    }
+
+    [Fact]
+    public void Evaluate_EmptyClinicalData_ReturnsNeedsMoreInfoInsteadOfThrowing()
+    {
+        var ruleDefinition = """
+        {
+            "rules": [
+                { "field": "therapyCompleted", "operator": "equals", "value": true }
+            ]
+        }
+        """;
+
+        var engine = new AuthEvaluationEngine();
+        var decision = engine.Evaluate(string.Empty, ruleDefinition);
+
+        Assert.Equal(AuthOutcome.NeedsMoreInfo, decision.Outcome);
+        Assert.False(decision.RuleResults[0].Passed);
+        Assert.Equal(FailureReasons.MissingField, decision.RuleResults[0].FailureReason);
+    }
+
     private const string WegovyRuleDefinition = """
     {
         "rules": [

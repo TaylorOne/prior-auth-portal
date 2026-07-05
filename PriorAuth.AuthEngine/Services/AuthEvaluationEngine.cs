@@ -10,8 +10,12 @@ public class AuthEvaluationEngine
         var ruleDefinition = RuleDefinition.FromJson(ruleDefinitionJson)
             ?? throw new ArgumentException("Invalid rule definition JSON.");
 
-        var clinicalData = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(clinicalDataJson)
-            ?? throw new ArgumentException("Invalid clinical data JSON.");
+        // Requests persisted before clinical data was collected may carry an empty payload;
+        // treat that as "no fields supplied" so every rule reports MissingField instead of throwing.
+        var clinicalData = string.IsNullOrWhiteSpace(clinicalDataJson)
+            ? new Dictionary<string, JsonElement>()
+            : JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(clinicalDataJson)
+                ?? throw new ArgumentException("Invalid clinical data JSON.");
 
         var results = new List<RuleResult>();
         
@@ -48,8 +52,8 @@ public class AuthEvaluationEngine
     private List<RuleResult> EvaluateConditional(RuleNode rule, Dictionary<string, JsonElement> clinicalData)
     {
         var conditionResult = EvaluateNode(rule.Condition!, clinicalData);
-        var branch = conditionResult.Passed ? rule.Then! : rule.Else!;
-        
+        var branch = (conditionResult.Passed ? rule.Then : rule.Else) ?? [];
+
         return branch.Select(r => EvaluateNode(r, clinicalData)).ToList();
     }
 
@@ -90,7 +94,14 @@ public class AuthEvaluationEngine
 
     private RuleResult EvaluateHasValue(RuleNode rule, JsonElement fieldValue)
     {
-        var passed = fieldValue.ValueKind != JsonValueKind.Null && fieldValue.ValueKind != JsonValueKind.Undefined && !string.IsNullOrEmpty(fieldValue.GetString());
+        // GetString() throws for non-string kinds, and clinical data values are client-supplied —
+        // only strings need the empty check; any other non-null kind counts as a value.
+        var passed = fieldValue.ValueKind switch
+        {
+            JsonValueKind.Null or JsonValueKind.Undefined => false,
+            JsonValueKind.String => !string.IsNullOrEmpty(fieldValue.GetString()),
+            _ => true
+        };
 
         return new RuleResult
         {

@@ -104,11 +104,14 @@ public class AuthEvaluationFunction
             return;
         }
 
-        request.Status = decision.Outcome == AuthOutcome.Approved
-            ? Status.Approved
-            : Status.Denied;
+        request.Status = decision.Outcome switch
+        {
+            AuthOutcome.Approved => Status.Approved,
+            AuthOutcome.NeedsMoreInfo => Status.NeedsMoreInfo,
+            _ => Status.Denied
+        };
 
-        if (request.Status == Status.Denied)
+        if (request.Status != Status.Approved)
         {
             request.EvaluationReason = JsonSerializer.Serialize(
                 decision.RuleResults
@@ -116,7 +119,11 @@ public class AuthEvaluationFunction
                     .Select(r => new { r.Field, r.FailureReason }));
         }
 
-        request.DeterminationDate = DateTime.UtcNow;
+        // NeedsMoreInfo is not a final determination — leave DeterminationDate unset
+        if (request.Status != Status.NeedsMoreInfo)
+        {
+            request.DeterminationDate = DateTime.UtcNow;
+        }
 
         await _db.SaveChangesAsync(cancellationToken);
 

@@ -22,6 +22,7 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive"> = {
   UnderReview: "default",
   Approved: "default",
   Denied: "destructive",
+  NeedsMoreInfo: "secondary",
 };
 
 const statusLabel: Record<string, string> = {
@@ -165,18 +166,19 @@ export default function PrescriberDashboard() {
                   <TableBody>
                     {requests.map((r) => {
                       const isDenied = r.status === "Denied";
+                      const isExpandable = isDenied || r.status === "NeedsMoreInfo";
                       const isExpanded = expandedRowId === r.id;
                       const isManualReview = isDenied && !!r.reviewerNotes;
                       const denialReasons: { Field: string; FailureReason: string }[] =
-                        isDenied && !isManualReview && r.evaluationReasons
+                        isExpandable && !isManualReview && r.evaluationReasons
                           ? JSON.parse(r.evaluationReasons)
                           : [];
 
                       return (
                         <React.Fragment key={r.id}>
                           <TableRow
-                            className={isDenied ? "cursor-pointer" : undefined}
-                            onClick={isDenied ? () => setExpandedRowId(isExpanded ? null : r.id) : undefined}
+                            className={isExpandable ? "cursor-pointer" : undefined}
+                            onClick={isExpandable ? () => setExpandedRowId(isExpanded ? null : r.id) : undefined}
                           >
                             <TableCell className="font-medium">{r.patientName}</TableCell>
                             <TableCell>
@@ -199,19 +201,19 @@ export default function PrescriberDashboard() {
                             </TableCell>
                             <TableCell>{formatDate(r.createdAt)}</TableCell>
                             <TableCell className="w-8 text-muted-foreground">
-                              {isDenied && (
+                              {isExpandable && (
                                 isExpanded
                                   ? <ChevronDown className="size-4" />
                                   : <ChevronRight className="size-4" />
                               )}
                             </TableCell>
                           </TableRow>
-                          {isDenied && isExpanded && (
+                          {isExpandable && isExpanded && (
                             <TableRow key={`${r.id}-detail`} className="hover:bg-transparent">
                               <TableCell colSpan={7} className="bg-muted/50 px-6 py-4">
                                 <div className="flex items-start gap-8">
-                                  <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-destructive">
-                                    Denial Reasons
+                                  <p className={`shrink-0 text-xs font-semibold uppercase tracking-wide ${isDenied ? "text-destructive" : "text-muted-foreground"}`}>
+                                    {isDenied ? "Denial Reasons" : "Missing Information"}
                                   </p>
                                   {isManualReview ? (
                                     <div className="grid grid-cols-2 gap-8">

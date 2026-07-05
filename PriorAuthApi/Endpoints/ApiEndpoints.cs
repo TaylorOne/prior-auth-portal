@@ -50,9 +50,16 @@ namespace PriorAuthApi.Endpoints
             .WithName("GetAuthRuleIndications")
             .RequireAuthorization("PrescriberOnly");
 
-            app.MapGet("/priorauth", async (AppDbContext db) =>
+            app.MapGet("/priorauth", async (AppDbContext db, IPractitionerResolver resolver, CancellationToken ct) =>
             {
+                var practitioner = await resolver.ResolveCurrentAsync(ct);
+                if (practitioner is null)
+                    return Results.Problem(
+                        "Authenticated user is not linked to a practitioner record.",
+                        statusCode: StatusCodes.Status403Forbidden);
+
                 var requests = await db.PriorAuthRequests
+                    .Where(r => r.PractitionerId == practitioner.Id)
                     .Include(r => r.Patient)
                     .Include(r => r.Practitioner)
                     .OrderByDescending(r => r.CreatedAt)
@@ -156,9 +163,10 @@ namespace PriorAuthApi.Endpoints
                     Status = Status.Submitted,
                     PatientId = dto.PatientId,
                     PractitionerId = practitioner.Id,
+                    // "{}" rather than "" so the evaluation engine always receives valid JSON
                     ClinicalData = dto.ClinicalData is not null
                         ? JsonSerializer.Serialize(dto.ClinicalData)
-                        : string.Empty,
+                        : "{}",
                     AuthRuleId = authRule.Id,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -221,6 +229,9 @@ namespace PriorAuthApi.Endpoints
                 if (dto.Decision != "Approved" && dto.Decision != "Denied")
                     return Results.BadRequest("Decision must be 'Approved' or 'Denied'.");
 
+                if (dto.Decision == "Denied" && string.IsNullOrWhiteSpace(dto.ReviewerNotes))
+                    return Results.BadRequest("Reviewer notes are required when denying a request.");
+
                 var request = await db.PriorAuthRequests.FindAsync(id);
                 if (request is null)
                     return Results.NotFound();
@@ -272,13 +283,15 @@ namespace PriorAuthApi.Endpoints
 
             app.MapGet("/patients", async (AppDbContext db) =>
             {
+                var today = DateOnly.FromDateTime(DateTime.UtcNow);
                 var patients = await db.Patients
                     .Select(p => new PatientSummaryDto(
                         p.Id,
                         $"{p.FirstName} {p.LastName}",
-                        DateTime.UtcNow.Year - p.DateOfBirth.Year -
-                            (new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime.UtcNow.Day)
-                                < p.DateOfBirth ? 1 : 0),
+                        today.Year - p.DateOfBirth.Year -
+                            (today.Month < p.DateOfBirth.Month ||
+                                (today.Month == p.DateOfBirth.Month && today.Day < p.DateOfBirth.Day)
+                                ? 1 : 0),
                         p.Gender.ToString()
                     ))
                     .ToListAsync();
