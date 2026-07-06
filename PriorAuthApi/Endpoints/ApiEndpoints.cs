@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Azure.Messaging.ServiceBus;
 using System.Text.Json;
 using PriorAuth.Contracts;
 using PriorAuth.Data;
@@ -109,7 +108,6 @@ namespace PriorAuthApi.Endpoints
 
             app.MapPost("/priorauth", async (
                 AppDbContext db,
-                ServiceBusSender sender,
                 AuditService audit,
                 IPractitionerResolver resolver,
                 CancellationToken ct,
@@ -154,40 +152,66 @@ namespace PriorAuthApi.Endpoints
                         "Authenticated user is not linked to a practitioner record.",
                         statusCode: StatusCodes.Status403Forbidden);
 
-                var request = new PriorAuthRequest
+                // Transactional outbox (ADR-008): the request and its evaluation message are
+                // committed atomically; OutboxDispatcher delivers the message to Service Bus.
+                // The retrying execution strategy re-runs this delegate on transient failures,
+                // so each attempt must start from a clean change tracker.
+                var strategy = db.Database.CreateExecutionStrategy();
+                var request = await strategy.ExecuteAsync(async () =>
                 {
-                    ServiceCode = dto.Code.Code,
-                    ServiceCodeSystem = dto.Code.System,
-                    ServiceCodeDisplay = dto.Code.Display,
-                    Priority = dto.Priority,
-                    Status = Status.Submitted,
-                    PatientId = dto.PatientId,
-                    PractitionerId = practitioner.Id,
-                    // "{}" rather than "" so the evaluation engine always receives valid JSON
-                    ClinicalData = dto.ClinicalData is not null
-                        ? JsonSerializer.Serialize(dto.ClinicalData)
-                        : "{}",
-                    AuthRuleId = authRule.Id,
-                    CreatedAt = DateTime.UtcNow
-                };
+                    db.ChangeTracker.Clear();
+                    await using var transaction = await db.Database.BeginTransactionAsync(ct);
 
-                if (dto.MedicationRequest is not null)
-                {
-                    request.MedicationRequest = new MedicationRequest
+                    var created = new PriorAuthRequest
                     {
-                        MedicationCode = dto.MedicationRequest.Medication.Code,
-                        MedicationSystem = dto.MedicationRequest.Medication.System,
-                        MedicationDisplay = dto.MedicationRequest.Medication.Display,
-                        DosageInstructionText = dto.MedicationRequest.DosageInstructionText,
-                        QuantityValue = dto.MedicationRequest.QuantityValue,
-                        QuantityUnit = dto.MedicationRequest.QuantityUnit,
-                        NumberOfRepeatsAllowed = dto.MedicationRequest.NumberOfRepeatsAllowed,
-                        ExpectedSupplyDurationDays = dto.MedicationRequest.ExpectedSupplyDurationDays,
+                        ServiceCode = dto.Code.Code,
+                        ServiceCodeSystem = dto.Code.System,
+                        ServiceCodeDisplay = dto.Code.Display,
+                        Priority = dto.Priority,
+                        Status = Status.Submitted,
+                        PatientId = dto.PatientId,
+                        PractitionerId = practitioner.Id,
+                        // "{}" rather than "" so the evaluation engine always receives valid JSON
+                        ClinicalData = dto.ClinicalData is not null
+                            ? JsonSerializer.Serialize(dto.ClinicalData)
+                            : "{}",
+                        AuthRuleId = authRule.Id,
+                        CreatedAt = DateTime.UtcNow
                     };
-                }
 
-                db.PriorAuthRequests.Add(request);
-                await db.SaveChangesAsync();
+                    if (dto.MedicationRequest is not null)
+                    {
+                        created.MedicationRequest = new MedicationRequest
+                        {
+                            MedicationCode = dto.MedicationRequest.Medication.Code,
+                            MedicationSystem = dto.MedicationRequest.Medication.System,
+                            MedicationDisplay = dto.MedicationRequest.Medication.Display,
+                            DosageInstructionText = dto.MedicationRequest.DosageInstructionText,
+                            QuantityValue = dto.MedicationRequest.QuantityValue,
+                            QuantityUnit = dto.MedicationRequest.QuantityUnit,
+                            NumberOfRepeatsAllowed = dto.MedicationRequest.NumberOfRepeatsAllowed,
+                            ExpectedSupplyDurationDays = dto.MedicationRequest.ExpectedSupplyDurationDays,
+                        };
+                    }
+
+                    db.PriorAuthRequests.Add(created);
+                    await db.SaveChangesAsync(ct);
+
+                    db.OutboxMessages.Add(new OutboxMessage
+                    {
+                        MessageType = nameof(PriorAuthSubmittedMessage),
+                        Payload = JsonSerializer.Serialize(new PriorAuthSubmittedMessage
+                        {
+                            PriorAuthRequestId = created.Id
+                        }),
+                        CorrelationId = Guid.NewGuid().ToString(),
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await db.SaveChangesAsync(ct);
+
+                    await transaction.CommitAsync(ct);
+                    return created;
+                });
 
                 await audit.LogAsync(request.Id, AuditEventTypes.RequestCreated, AuditActors.System, new
                 {
@@ -195,28 +219,6 @@ namespace PriorAuthApi.Endpoints
                     practitionerId = request.PractitionerId,
                     serviceCode = request.ServiceCode,
                     priority = request.Priority
-                });
-
-                var correlationId = Guid.NewGuid().ToString();
-                var message = new ServiceBusMessage(JsonSerializer.Serialize(new PriorAuthSubmittedMessage
-                {
-                    PriorAuthRequestId = request.Id
-                }))
-                {
-                    CorrelationId = correlationId
-                };
-
-                // NOTE: SaveChangesAsync and SendMessageAsync are not atomic. If the Service Bus send fails,
-                // the request is persisted but never evaluated. In production this would be addressed with
-                // the transactional outbox pattern — persisting the message to the DB in the same transaction
-                // as the request, then delivering it to the bus via a background process.
-                // See ADR-007 for the decision record.
-                await sender.SendMessageAsync(message);
-
-                await audit.LogAsync(request.Id, AuditEventTypes.MessagePublished, AuditActors.System, new
-                {
-                    correlationId,
-                    queue = "auth-evaluation"
                 });
 
                 return Results.Created($"/priorauth/{request.Id}", new { request.Id });

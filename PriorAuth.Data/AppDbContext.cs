@@ -17,6 +17,7 @@ namespace PriorAuth.Data
         public DbSet<MedicationRequest> MedicationRequests { get; set; }
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<AuditEvent> AuditEvents { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -62,6 +63,16 @@ namespace PriorAuth.Data
                 .HasIndex(p => p.EntraOid)
                 .IsUnique()
                 .HasFilter("[EntraOid] IS NOT NULL");
+
+            // The dispatcher polls for unprocessed rows; a filtered index keeps that
+            // scan cheap as delivered rows accumulate.
+            modelBuilder.Entity<OutboxMessage>()
+                .HasIndex(m => m.ProcessedAt)
+                .HasFilter("[ProcessedAt] IS NULL");
+
+            modelBuilder.Entity<OutboxMessage>()
+                .Property(m => m.MessageType)
+                .HasMaxLength(200);
         }
     }
 }

@@ -1,0 +1,71 @@
+name: Infrastructure
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  # Validate templates on every change to them.
+  push:
+    branches: [ "**" ]
+    paths: [ "infra/**", ".github/workflows/infra.yml" ]
+  pull_request:
+    branches: [ main ]
+    paths: [ "infra/**", ".github/workflows/infra.yml" ]
+  # Deploys are deliberate, manual actions — never triggered by a push.
+  workflow_dispatch:
+    inputs:
+      resource_group:
+        description: "Target resource group (must already exist)"
+        required: true
+      environment_name:
+        description: "Environment discriminator"
+        required: true
+        default: dev
+        type: choice
+        options: [ dev, staging, prod ]
+      mode:
+        description: "what-if previews changes without applying them"
+        required: true
+        default: what-if
+        type: choice
+        options: [ what-if, deploy ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bicep build (compile check)
+        run: az bicep build --file infra/main.bicep --stdout > /dev/null
+
+      - name: Bicep lint
+        run: az bicep lint --file infra/main.bicep
+
+  deploy:
+    if: github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment_name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: What-if / Deploy
+        run: |
+          ACTION=$([ "${{ inputs.mode }}" = "deploy" ] && echo create || echo what-if)
+          az deployment group $ACTION \
+            --resource-group "${{ inputs.resource_group }}" \
+            --template-file infra/main.bicep \
+            --parameters \
+              environmentName="${{ inputs.environment_name }}" \
+              sqlEntraAdminLogin="${{ secrets.AZURE_SQL_ADMIN_LOGIN }}" \
+              sqlEntraAdminObjectId="${{ secrets.AZURE_SQL_ADMIN_OBJECT_ID }}"

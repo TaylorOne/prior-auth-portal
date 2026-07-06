@@ -1,37 +1,53 @@
-# ADR-007: Deferred Outbox Pattern for Service Bus Delivery
+# ADR-008: Transactional Outbox Pattern for Service Bus Delivery
 
 ## Status
-Acknowledged — not implemented
+Implemented (previously: acknowledged — not implemented)
 
 ## Context
-The POST /priorauth endpoint persists a PriorAuthRequest to SQL Server and then
-publishes a PriorAuthSubmittedMessage to Azure Service Bus. These are two separate
-I/O operations with no distributed transaction spanning them. If SaveChangesAsync
-succeeds but SendMessageAsync fails, the request exists in the database but no
-evaluation message is ever delivered. The request silently stalls in Draft status
-with no evaluation triggered.
+The POST /priorauth endpoint persists a PriorAuthRequest to SQL Server and needs a
+PriorAuthSubmittedMessage published to Azure Service Bus so the evaluation function
+runs. These are two separate I/O operations with no distributed transaction spanning
+them. In the original implementation the endpoint called SendMessageAsync directly
+after SaveChangesAsync: if the send failed, the request existed in the database but
+no evaluation message was ever delivered, and the request silently stalled with no
+evaluation triggered and no visibility into the failure.
 
 ## Decision
-The outbox pattern is not implemented in this project. The two operations remain
-non-atomic.
+Implement the transactional outbox pattern:
 
-## Rationale
-The transactional outbox pattern would require:
-- An OutboxMessage table persisted in the same transaction as the request
-- A background process (hosted service or Azure Function) polling the outbox and
-  delivering messages to the bus
-- Idempotency handling on the consumer side to guard against duplicate delivery
-
-This is meaningful infrastructure overhead. For a portfolio project demonstrating
-the Service Bus integration pattern, the architectural tradeoff is acknowledged and
-documented rather than implemented. The failure mode (stuck Draft request) is
-acceptable in a demo context where data integrity is not production-critical.
+- **OutboxMessages table** — the endpoint writes the serialized message to an
+  `OutboxMessages` row in the *same database transaction* as the PriorAuthRequest
+  (wrapped in the retrying execution strategy, with the change tracker cleared at
+  the start of each attempt so retries are safe). Either both rows commit or
+  neither does.
+- **Background dispatcher** — `OutboxDispatcher`, driven by the
+  `OutboxDispatcherService` hosted service in the API process, polls for
+  unprocessed rows (default every 5 seconds, configurable via
+  `Outbox:PollIntervalSeconds`), sends each to the `auth-evaluation` queue, and
+  stamps `ProcessedAt`. Failed sends record `AttemptCount`/`LastError` and are
+  retried after a one-minute backoff, indefinitely — a poisoned row stays visible
+  in the table rather than being dropped. A filtered index on `ProcessedAt IS NULL`
+  keeps the polling query cheap as delivered rows accumulate. The hosted service is
+  only registered when a Service Bus connection string is configured.
+- **At-least-once delivery** — a crash between the send and the `ProcessedAt`
+  update re-sends the message on the next pass. This is acceptable because the
+  consumer is idempotent: `AuthEvaluationFunction` skips any request whose status
+  is not `Submitted`. The outbox row id is also stamped as the Service Bus
+  `MessageId`, so broker-side duplicate detection can be enabled on the queue as a
+  second guard.
+- The `MessagePublished` audit event is now written by the dispatcher at actual
+  delivery time rather than by the endpoint, so the audit trail reflects what
+  really happened.
 
 ## Consequences
-- A Service Bus send failure leaves a PriorAuthRequest in Draft status permanently
-  with no evaluation triggered and no visibility into the failure
-- In production this would require either the outbox pattern or at minimum a
-  compensating mechanism — a scheduled job scanning for Draft requests older than
-  a threshold and re-queuing them
-- CMS-0057-F real-time adjudication requirements would make this failure mode
-  unacceptable in a production payer system
+- A Service Bus outage no longer loses evaluations: requests continue to be
+  accepted, and queued outbox rows are delivered when the bus recovers.
+- Evaluation dispatch gains up to one poll interval of latency compared to the
+  previous inline send.
+- Delivered rows accumulate in `OutboxMessages`; a retention job (e.g. delete
+  processed rows older than 30 days) is a straightforward follow-up if table
+  growth ever matters.
+- The dispatcher does not claim rows, so multiple API instances could deliver the
+  same message concurrently. That only produces duplicate sends — harmless given
+  consumer idempotency — but row claiming (UPDLOCK/READPAST) would be the next
+  step if exactly-once *dispatch* were ever required.
