@@ -1,0 +1,97 @@
+[
+  {
+    "caseId": "MRI-001-clear-approve",
+    "tags": ["clear-approve"],
+    "request": {
+      "requestId": "MRI-001",
+      "payer": "DemoHealth",
+      "serviceCode": "73721",
+      "indicationCode": "M25.561",
+      "evidence": [
+        { "ref": "ev-form-1", "kind": "form-field", "text": "Conservative therapy completed: yes. Supervised physical therapy with structured exercise and NSAIDs." },
+        { "ref": "ev-form-2", "kind": "form-field", "text": "Completed conservative therapy course lasted 12 weeks." },
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Knee pain symptoms persist and worsen despite the completed conservative therapy course." },
+        { "ref": "ev-img-1", "kind": "imaging-report", "text": "Plain radiograph (X-ray) of the knee performed and reviewed prior to advanced imaging; degenerative changes noted." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-RAD-73721-KNEE",
+      "recommendation": "approve",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "met" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  },
+  {
+    "caseId": "MRI-002-deny-short-therapy",
+    "tags": ["clear-deny", "numeric-threshold"],
+    "request": {
+      "requestId": "MRI-002",
+      "payer": "DemoHealth",
+      "serviceCode": "73721",
+      "indicationCode": "M25.561",
+      "evidence": [
+        { "ref": "ev-form-1", "kind": "form-field", "text": "Conservative therapy completed: yes. Supervised physical therapy with structured exercise." },
+        { "ref": "ev-form-2", "kind": "form-field", "text": "Completed conservative therapy course lasted 3 weeks." },
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Knee pain symptoms persist despite the completed conservative therapy course." },
+        { "ref": "ev-img-1", "kind": "imaging-report", "text": "Plain radiograph (X-ray) of the knee performed and reviewed prior to advanced imaging." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-RAD-73721-KNEE",
+      "recommendation": "deny",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "not-met" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  },
+  {
+    "caseId": "MRI-003-pend-missing-radiograph",
+    "tags": ["pend", "missing-evidence"],
+    "request": {
+      "requestId": "MRI-003",
+      "payer": "DemoHealth",
+      "serviceCode": "73721",
+      "indicationCode": "M25.561",
+      "evidence": [
+        { "ref": "ev-form-1", "kind": "form-field", "text": "Conservative therapy completed: yes. Supervised physical therapy with structured exercise and corticosteroid injection." },
+        { "ref": "ev-form-2", "kind": "form-field", "text": "Completed conservative therapy course lasted 8 weeks." },
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Knee pain symptoms persist and worsen despite the completed conservative therapy course." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-RAD-73721-KNEE",
+      "recommendation": "pend-for-info",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "met" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "insufficient-evidence" }
+      ]
+    }
+  },
+  {
+    "caseId": "MRI-004-wrong-policy-trap",
+    "tags": ["wrong-policy", "no-governing-policy"],
+    "request": {
+      "requestId": "MRI-004",
+      "payer": "DemoHealth",
+      "serviceCode": "73721",
+      "indicationCode": "M17.11",
+      "evidence": [
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Unilateral primary osteoarthritis of the right knee; conservative therapy completed over 10 weeks." }
+      ]
+    },
+    "expected": {
+      "policyId": null,
+      "recommendation": "pend-for-info",
+      "criteria": []
+    }
+  }
+]

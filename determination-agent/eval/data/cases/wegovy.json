@@ -1,0 +1,79 @@
+[
+  {
+    "caseId": "WGV-001-clear-approve",
+    "tags": ["clear-approve"],
+    "request": {
+      "requestId": "WGV-001",
+      "payer": "DemoHealth",
+      "serviceCode": "J3490",
+      "indicationCode": "E66.9",
+      "evidence": [
+        { "ref": "ev-vitals-1", "kind": "form-field", "text": "Body mass index documented at 34 with weight-related comorbid hypertension." },
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Participated in a structured weight management and lifestyle modification program lasting 16 weeks." },
+        { "ref": "ev-note-2", "kind": "clinical-note", "text": "Personal and family history screened for medullary thyroid carcinoma and multiple endocrine neoplasia; screening unremarkable." },
+        { "ref": "ev-vitals-2", "kind": "form-field", "text": "Baseline weight and body mass index measurement recorded in the chart 1 month before the request." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-PHM-J3490-WEGOVY",
+      "recommendation": "approve",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "met" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  },
+  {
+    "caseId": "WGV-002-deny-bmi-below-threshold",
+    "tags": ["clear-deny", "numeric-threshold"],
+    "request": {
+      "requestId": "WGV-002",
+      "payer": "DemoHealth",
+      "serviceCode": "J3490",
+      "indicationCode": "E66.9",
+      "evidence": [
+        { "ref": "ev-vitals-1", "kind": "form-field", "text": "Body mass index documented at 25; comorbid hypertension present." },
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Participated in a structured weight management and lifestyle modification program lasting 14 weeks." },
+        { "ref": "ev-note-2", "kind": "clinical-note", "text": "Personal and family history screened for medullary thyroid carcinoma and multiple endocrine neoplasia; screening unremarkable." },
+        { "ref": "ev-vitals-2", "kind": "form-field", "text": "Baseline weight and body mass index measurement recorded in the chart 2 months before the request." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-PHM-J3490-WEGOVY",
+      "recommendation": "deny",
+      "criteria": [
+        { "criterionId": "C1", "status": "not-met" },
+        { "criterionId": "C2", "status": "met" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  },
+  {
+    "caseId": "WGV-003-pend-no-program-documentation",
+    "tags": ["pend", "missing-evidence"],
+    "request": {
+      "requestId": "WGV-003",
+      "payer": "DemoHealth",
+      "serviceCode": "J3490",
+      "indicationCode": "E66.9",
+      "evidence": [
+        { "ref": "ev-vitals-1", "kind": "form-field", "text": "Body mass index documented at 31." },
+        { "ref": "ev-note-2", "kind": "clinical-note", "text": "Personal and family history screened for medullary thyroid carcinoma and multiple endocrine neoplasia; screening unremarkable." },
+        { "ref": "ev-vitals-2", "kind": "form-field", "text": "Baseline weight and body mass index measurement recorded in the chart 1 month before the request." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-PHM-J3490-WEGOVY",
+      "recommendation": "pend-for-info",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "insufficient-evidence" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  }
+]

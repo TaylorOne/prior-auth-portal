@@ -1,0 +1,80 @@
+[
+  {
+    "caseId": "HUM-RA-001-clear-approve",
+    "tags": ["clear-approve"],
+    "request": {
+      "requestId": "HUM-RA-001",
+      "payer": "DemoHealth",
+      "serviceCode": "J0135",
+      "indicationCode": "M06.9",
+      "evidence": [
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Moderately to severely active rheumatoid arthritis diagnosed by rheumatology specialist Dr. Patel." },
+        { "ref": "ev-form-1", "kind": "form-field", "text": "Completed trial of conventional disease modifying antirheumatic drug methotrexate lasting 16 weeks." },
+        { "ref": "ev-note-2", "kind": "clinical-note", "text": "Chart documents inadequate response to the conventional disease modifying therapy despite dose optimization." },
+        { "ref": "ev-lab-1", "kind": "lab", "text": "Tuberculosis screening with interferon gamma release assay completed 4 months before biologic initiation; result negative." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-PHM-J0135-RA",
+      "recommendation": "approve",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "met" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  },
+  {
+    "caseId": "HUM-RA-002-deny-short-dmard-trial",
+    "tags": ["clear-deny", "numeric-threshold"],
+    "request": {
+      "requestId": "HUM-RA-002",
+      "payer": "DemoHealth",
+      "serviceCode": "J0135",
+      "indicationCode": "M06.9",
+      "evidence": [
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Moderately to severely active rheumatoid arthritis diagnosed by rheumatology specialist Dr. Patel." },
+        { "ref": "ev-form-1", "kind": "form-field", "text": "Completed trial of conventional disease modifying antirheumatic drug methotrexate lasting 6 weeks." },
+        { "ref": "ev-note-2", "kind": "clinical-note", "text": "Chart documents inadequate response to the conventional disease modifying therapy." },
+        { "ref": "ev-lab-1", "kind": "lab", "text": "Tuberculosis screening with interferon gamma release assay completed 2 months before biologic initiation; result negative." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-PHM-J0135-RA",
+      "recommendation": "deny",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "not-met" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  },
+  {
+    "caseId": "HUM-RA-003-pend-vague-tb-screening",
+    "tags": ["pend", "ambiguous-evidence"],
+    "request": {
+      "requestId": "HUM-RA-003",
+      "payer": "DemoHealth",
+      "serviceCode": "J0135",
+      "indicationCode": "M06.9",
+      "evidence": [
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Moderately to severely active rheumatoid arthritis diagnosed by rheumatology specialist Dr. Patel." },
+        { "ref": "ev-form-1", "kind": "form-field", "text": "Completed trial of conventional disease modifying antirheumatic drug methotrexate lasting 20 weeks." },
+        { "ref": "ev-note-2", "kind": "clinical-note", "text": "Chart documents inadequate response to the conventional disease modifying therapy." },
+        { "ref": "ev-note-3", "kind": "clinical-note", "text": "Screening discussed at the most recent visit." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-PHM-J0135-RA",
+      "recommendation": "pend-for-info",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "met" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "insufficient-evidence" }
+      ]
+    }
+  }
+]

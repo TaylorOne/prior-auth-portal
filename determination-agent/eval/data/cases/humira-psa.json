@@ -1,0 +1,50 @@
+[
+  {
+    "caseId": "HUM-PSA-001-clear-approve",
+    "tags": ["clear-approve"],
+    "request": {
+      "requestId": "HUM-PSA-001",
+      "payer": "DemoHealth",
+      "serviceCode": "J0135",
+      "indicationCode": "L40.50",
+      "evidence": [
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Active psoriatic arthritis diagnosed by rheumatology specialist with dermatology confirmation." },
+        { "ref": "ev-form-1", "kind": "form-field", "text": "Completed trial of nonsteroidal therapy and a conventional disease modifying agent lasting 10 weeks." },
+        { "ref": "ev-lab-1", "kind": "lab", "text": "Tuberculosis screening completed 3 months before biologic initiation; result negative." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-PHM-J0135-PSA",
+      "recommendation": "approve",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "met" },
+        { "criterionId": "C3", "status": "met" }
+      ]
+    }
+  },
+  {
+    "caseId": "HUM-PSA-002-deny-no-prior-therapy",
+    "tags": ["clear-deny", "negation"],
+    "request": {
+      "requestId": "HUM-PSA-002",
+      "payer": "DemoHealth",
+      "serviceCode": "J0135",
+      "indicationCode": "L40.50",
+      "evidence": [
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Active psoriatic arthritis diagnosed by rheumatology specialist." },
+        { "ref": "ev-form-1", "kind": "form-field", "text": "Member has not completed any trial of nonsteroidal therapy or conventional disease modifying agents." },
+        { "ref": "ev-lab-1", "kind": "lab", "text": "Tuberculosis screening completed 5 months before biologic initiation; result negative." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-PHM-J0135-PSA",
+      "recommendation": "deny",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "not-met" },
+        { "criterionId": "C3", "status": "met" }
+      ]
+    }
+  }
+]

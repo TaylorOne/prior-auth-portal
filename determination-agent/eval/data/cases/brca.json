@@ -1,0 +1,79 @@
+[
+  {
+    "caseId": "BRCA-001-clear-approve",
+    "tags": ["clear-approve"],
+    "request": {
+      "requestId": "BRCA-001",
+      "payer": "DemoHealth",
+      "serviceCode": "81162",
+      "indicationCode": "Z15.01",
+      "evidence": [
+        { "ref": "ev-hx-1", "kind": "family-history", "text": "Personal and family history of breast and ovarian cancer meeting hereditary risk assessment criteria; two first-degree relatives affected." },
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Completed pre-test genetic counseling with a qualified genetics professional on record." },
+        { "ref": "ev-lab-1", "kind": "lab", "text": "Laboratory record reviewed; first full sequence analysis of the BRCA1 and BRCA2 genes for this member confirmed." },
+        { "ref": "ev-order-1", "kind": "order", "text": "Test ordered by physician managing the member's hereditary cancer risk assessment." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-LAB-81162-BRCA",
+      "recommendation": "approve",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "met" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  },
+  {
+    "caseId": "BRCA-002-pend-missing-counseling",
+    "tags": ["pend", "missing-evidence"],
+    "request": {
+      "requestId": "BRCA-002",
+      "payer": "DemoHealth",
+      "serviceCode": "81162",
+      "indicationCode": "Z15.01",
+      "evidence": [
+        { "ref": "ev-hx-1", "kind": "family-history", "text": "Personal and family history of breast and ovarian cancer meeting hereditary risk assessment criteria." },
+        { "ref": "ev-lab-1", "kind": "lab", "text": "Laboratory record reviewed; first full sequence analysis of the BRCA1 and BRCA2 genes for this member confirmed." },
+        { "ref": "ev-order-1", "kind": "order", "text": "Test ordered by physician managing the member's hereditary cancer risk assessment." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-LAB-81162-BRCA",
+      "recommendation": "pend-for-info",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "insufficient-evidence" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  },
+  {
+    "caseId": "BRCA-003-deny-counseling-declined",
+    "tags": ["clear-deny", "negation"],
+    "request": {
+      "requestId": "BRCA-003",
+      "payer": "DemoHealth",
+      "serviceCode": "81162",
+      "indicationCode": "Z15.01",
+      "evidence": [
+        { "ref": "ev-hx-1", "kind": "family-history", "text": "Personal and family history of breast and ovarian cancer meeting hereditary risk assessment criteria." },
+        { "ref": "ev-note-1", "kind": "clinical-note", "text": "Pre-test genetic counseling was not completed; member declined the genetics professional appointment." },
+        { "ref": "ev-lab-1", "kind": "lab", "text": "Laboratory record reviewed; first full sequence analysis of the BRCA1 and BRCA2 genes for this member confirmed." },
+        { "ref": "ev-order-1", "kind": "order", "text": "Test ordered by physician managing the member's hereditary cancer risk assessment." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-LAB-81162-BRCA",
+      "recommendation": "deny",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "not-met" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  }
+]

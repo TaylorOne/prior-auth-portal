@@ -1,0 +1,39 @@
+name: Determination Agent
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [ "**" ]
+    paths: [ "determination-agent/**", ".github/workflows/determination-agent.yml" ]
+  pull_request:
+    branches: [ main ]
+    paths: [ "determination-agent/**", ".github/workflows/determination-agent.yml" ]
+
+jobs:
+  build-test-eval:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: determination-agent
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Build
+        run: dotnet build DeterminationAgent.sln --configuration Release
+
+      - name: Test
+        run: dotnet test DeterminationAgent.sln --no-build --configuration Release
+
+      # Regression gate: the offline baseline currently scores ~97% criterion
+      # accuracy; fail the build if a change to prompts, the guard, or the
+      # corpus drops it below 90%.
+      - name: Eval (baseline regression gate)
+        run: dotnet run --project eval/DeterminationAgent.Eval --no-build --configuration Release -- --min-criterion-accuracy 0.9

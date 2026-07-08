@@ -1,0 +1,79 @@
+[
+  {
+    "caseId": "XAR-001-clear-approve",
+    "tags": ["clear-approve"],
+    "request": {
+      "requestId": "XAR-001",
+      "payer": "DemoHealth",
+      "serviceCode": "1599538",
+      "indicationCode": "I48.91",
+      "evidence": [
+        { "ref": "ev-ecg-1", "kind": "diagnostic-report", "text": "Documented diagnosis of non-valvular atrial fibrillation confirmed by electrocardiogram and cardiology consultation." },
+        { "ref": "ev-score-1", "kind": "form-field", "text": "Documented stroke risk score calculated at 4 using the standard atrial fibrillation stroke risk scale." },
+        { "ref": "ev-lab-1", "kind": "lab", "text": "Renal function assessed; creatinine clearance and eGFR result recorded 2 months before initiation." },
+        { "ref": "ev-med-1", "kind": "medication-review", "text": "Current medications reviewed; member confirmed free of concurrent therapeutic anticoagulant agents." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-PHM-1599538-AFIB",
+      "recommendation": "approve",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "met" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  },
+  {
+    "caseId": "XAR-002-deny-low-stroke-risk",
+    "tags": ["clear-deny", "numeric-threshold"],
+    "request": {
+      "requestId": "XAR-002",
+      "payer": "DemoHealth",
+      "serviceCode": "1599538",
+      "indicationCode": "I48.91",
+      "evidence": [
+        { "ref": "ev-ecg-1", "kind": "diagnostic-report", "text": "Documented diagnosis of non-valvular atrial fibrillation confirmed by electrocardiogram and cardiology consultation." },
+        { "ref": "ev-score-1", "kind": "form-field", "text": "Documented stroke risk score calculated at 1 using the standard atrial fibrillation stroke risk scale." },
+        { "ref": "ev-lab-1", "kind": "lab", "text": "Renal function assessed; creatinine clearance and eGFR result recorded 3 months before initiation." },
+        { "ref": "ev-med-1", "kind": "medication-review", "text": "Current medications reviewed; member confirmed free of concurrent therapeutic anticoagulant agents." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-PHM-1599538-AFIB",
+      "recommendation": "deny",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "not-met" },
+        { "criterionId": "C3", "status": "met" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  },
+  {
+    "caseId": "XAR-003-pend-missing-renal-function",
+    "tags": ["pend", "missing-evidence"],
+    "request": {
+      "requestId": "XAR-003",
+      "payer": "DemoHealth",
+      "serviceCode": "1599538",
+      "indicationCode": "I48.91",
+      "evidence": [
+        { "ref": "ev-ecg-1", "kind": "diagnostic-report", "text": "Documented diagnosis of non-valvular atrial fibrillation confirmed by electrocardiogram and cardiology consultation." },
+        { "ref": "ev-score-1", "kind": "form-field", "text": "Documented stroke risk score calculated at 3 using the standard atrial fibrillation stroke risk scale." },
+        { "ref": "ev-med-1", "kind": "medication-review", "text": "Current medications reviewed; member confirmed free of concurrent therapeutic anticoagulant agents." }
+      ]
+    },
+    "expected": {
+      "policyId": "DH-PHM-1599538-AFIB",
+      "recommendation": "pend-for-info",
+      "criteria": [
+        { "criterionId": "C1", "status": "met" },
+        { "criterionId": "C2", "status": "met" },
+        { "criterionId": "C3", "status": "insufficient-evidence" },
+        { "criterionId": "C4", "status": "met" }
+      ]
+    }
+  }
+]
