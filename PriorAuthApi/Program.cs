@@ -65,6 +65,17 @@ if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    await OrganizationSeeder.SeedAsync(db);
+    await PractitionerSeeder.SeedAsync(db);
+    await PatientSeeder.SeedAsync(db);
+    await AuthRuleSeeder.SeedAsync(db);
+}
+
 app.MapOpenApi();
 
 app.UseCors("DevCors");
