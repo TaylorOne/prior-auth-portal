@@ -35,4 +35,4 @@ The Da Vinci PAS IG is used as a design north star — the resource shape, field
 - `Coverage` is out of scope. Insurance context is implied by the payer organization relationship rather than modeled as a discrete FHIR resource.
 - X12 278 is acknowledged in architecture documentation but not implemented.
 - If this system were ever extended toward real Da Vinci PAS conformance, `ServiceRequest` would need to be replaced or wrapped with `Claim/$submit`. That's a known and accepted tradeoff.
-- The `ServiceRequest` + optional `MedicationRequest` pattern is a clean, queryable relational design. It avoids a wide single-table approach while keeping the two PA subtypes in a coherent hierarchy.
+- The `ServiceRequest` + optional `MedicationRequest` pattern is a clean, queryable relational design. It avoids a wide single-table approach while keeping the two PA subtypes in a coherent hierarchy. It doesn't however strictly comply with FHIR as the two are peer `DomainResource` subtypes so they don't have a parent/child relationship in the real world.

@@ -7,7 +7,7 @@
 
 ## Context
 
-The CD pipeline requires GitHub Actions to authenticate against Azure in order to deploy the API to App Service. The default approach provided by the `azure/webapps-deploy` action uses a publish profile — an XML blob containing a username and password that is stored as a GitHub Actions secret and submitted on each deployment.
+The CD pipeline requires GitHub Actions to authenticate against Azure in order to deploy the API to App Service and the background-processing Azure Function. The default approach provided by the `azure/webapps-deploy` action uses a publish profile — an XML blob containing a username and password that is stored as a GitHub Actions secret and submitted on each deployment.
 
 During initial CD pipeline setup, this approach failed with:
 
@@ -23,7 +23,7 @@ The root cause was that the App Service had basic authentication disabled at the
 
 Use OIDC (OpenID Connect) federated identity to authenticate GitHub Actions to Azure, replacing the publish profile approach entirely.
 
-The workflow uses `azure/login@v2` with `id-token: write` permissions granted at the workflow level:
+The deploy job runs only for pushes to `main`. It uses `azure/login@v2` with `id-token: write` permissions granted at the workflow level, then reuses the authenticated Azure session to deploy both workloads:
 
 ```yaml
 permissions:
@@ -41,7 +41,13 @@ permissions:
   uses: azure/webapps-deploy@v3
   with:
     app-name: app-prior-auth-dev
-    package: ./publish
+    package: app.zip
+
+- name: Deploy Azure Function
+  uses: Azure/functions-action@v1
+  with:
+    app-name: func-prior-auth-dev
+    package: func.zip
 ```
 
 ---
@@ -68,6 +74,7 @@ A more established approach where an Azure AD service principal is created with 
 ## Consequences
 
 - Basic authentication remains disabled on the App Service, preserving the secure default.
-- Three GitHub secrets are required (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`) rather than one, but none of these are credentials.
+- Three identifier values are stored as GitHub secrets for OIDC authentication (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`), but none of these are credentials.
+- The deployment workflow separately requires `AZURE_SQL_MIGRATION_CONNECTION_STRING` to apply database migrations before deployment. Unlike the OIDC identifiers, this value is a credential and must be handled as a sensitive secret.
 - An OIDC federated identity credential must be configured on the Azure AD app registration, scoped to the specific GitHub repo and branch (`main`). This is a one-time setup step that must be documented for anyone reproducing the environment.
 - The publish profile secret (`AZURE_WEBAPP_PUBLISH_PROFILE`) can be removed from GitHub secrets entirely as it is no longer used.
