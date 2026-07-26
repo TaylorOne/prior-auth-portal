@@ -10,6 +10,8 @@
 *.userosscache
 *.sln.docstates
 *.env
+.env.local
+.env.*.local
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -134,7 +136,6 @@ ipch/
 *.sap
 
 # VS Code directories
-.vscode/
 
 # Visual Studio Trace Files
 *.e2e
