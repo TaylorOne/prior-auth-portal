@@ -40,6 +40,18 @@ namespace PriorAuth.Data
                 .Property(a => a.RequiresManualReview)
                 .HasDefaultValue(false);
 
+            modelBuilder.Entity<AuthRule>()
+                .Property(a => a.Code)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<AuthRule>()
+                .Property(a => a.IndicationCode)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<AuthRule>()
+                .HasIndex(a => new { a.Code, a.IndicationCode })
+                .IsUnique();
+
             modelBuilder.Entity<AuditEvent>()
                 .HasOne(a => a.Request)
                 .WithMany()
