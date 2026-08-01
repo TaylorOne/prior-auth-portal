@@ -17,9 +17,10 @@ Implement the transactional outbox pattern:
 
 - **OutboxMessages table** — the endpoint writes the serialized message to an
   `OutboxMessages` row in the *same database transaction* as the PriorAuthRequest
-  (wrapped in the retrying execution strategy, with the change tracker cleared at
-  the start of each attempt so retries are safe). Either both rows commit or
-  neither does.
+  (wrapped in the retrying execution strategy). A stable correlation id and
+  `verifySucceeded` query detect when a commit succeeded but its acknowledgment
+  was lost, preventing the strategy from inserting a duplicate request. Either
+  both rows commit or neither does.
 - **Background dispatcher** — `OutboxDispatcher`, driven by the
   `OutboxDispatcherService` hosted service in the API process, polls for
   unprocessed rows (default every 5 seconds, configurable via

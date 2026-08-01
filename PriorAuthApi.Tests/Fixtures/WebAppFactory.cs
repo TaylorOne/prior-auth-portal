@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using Azure.Messaging.ServiceBus;
 using PriorAuth.Data;
 using PriorAuth.Data.Entities;
+using PriorAuthApi.Services;
 using Moq;
 
 
@@ -49,9 +50,10 @@ namespace PriorAuthApi.Tests
                 services.AddDbContext<AppDbContext>(options =>
                     options.UseSqlServer(TestConnectionString));
 
-                // Register a no-op mock sender so the endpoint can resolve it
+                // Tests invoke the dispatcher directly without starting its hosted poller.
                 var mockSender = new Mock<ServiceBusSender>();
                 services.AddSingleton(mockSender.Object);
+                services.AddScoped<OutboxDispatcher>();
             });
         }
 

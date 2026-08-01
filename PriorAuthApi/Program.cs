@@ -24,16 +24,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     });
 });
     
-// The dispatcher is resolvable whenever a ServiceBusSender is registered — in tests
-// the sender is a mock; the polling hosted service only runs when the bus is configured.
-builder.Services.AddScoped<OutboxDispatcher>();
-
+// Register the complete dispatcher dependency graph only when delivery is configured.
+// Tests opt in with a mock sender and a scoped dispatcher.
 var serviceBusConnectionString = builder.Configuration.GetConnectionString("ServiceBus");
 if (!string.IsNullOrEmpty(serviceBusConnectionString))
 {
     builder.Services.AddSingleton(new ServiceBusClient(serviceBusConnectionString));
     builder.Services.AddSingleton(sp =>
         sp.GetRequiredService<ServiceBusClient>().CreateSender("auth-evaluation"));
+    builder.Services.AddScoped<OutboxDispatcher>();
     builder.Services.AddHostedService<OutboxDispatcherService>();
 }
 

@@ -154,64 +154,68 @@ namespace PriorAuthApi.Endpoints
 
                 // Transactional outbox (ADR-008): the request and its evaluation message are
                 // committed atomically; OutboxDispatcher delivers the message to Service Bus.
-                // The retrying execution strategy re-runs this delegate on transient failures,
-                // so each attempt must start from a clean change tracker.
+                // A stable correlation id lets the strategy verify an ambiguous commit instead
+                // of replaying it and creating a duplicate request.
+                var correlationId = Guid.NewGuid().ToString();
                 var strategy = db.Database.CreateExecutionStrategy();
-                var request = await strategy.ExecuteAsync(async () =>
-                {
-                    db.ChangeTracker.Clear();
-                    await using var transaction = await db.Database.BeginTransactionAsync(ct);
-
-                    var created = new PriorAuthRequest
+                var request = await strategy.ExecuteInTransactionAsync(
+                    async retryCt =>
                     {
-                        ServiceCode = dto.Code.Code,
-                        ServiceCodeSystem = dto.Code.System,
-                        ServiceCodeDisplay = dto.Code.Display,
-                        Priority = dto.Priority,
-                        Status = Status.Submitted,
-                        PatientId = dto.PatientId,
-                        PractitionerId = practitioner.Id,
-                        // "{}" rather than "" so the evaluation engine always receives valid JSON
-                        ClinicalData = dto.ClinicalData is not null
-                            ? JsonSerializer.Serialize(dto.ClinicalData)
-                            : "{}",
-                        AuthRuleId = authRule.Id,
-                        CreatedAt = DateTime.UtcNow
-                    };
+                        db.ChangeTracker.Clear();
 
-                    if (dto.MedicationRequest is not null)
-                    {
-                        created.MedicationRequest = new MedicationRequest
+                        var created = new PriorAuthRequest
                         {
-                            MedicationCode = dto.MedicationRequest.Medication.Code,
-                            MedicationSystem = dto.MedicationRequest.Medication.System,
-                            MedicationDisplay = dto.MedicationRequest.Medication.Display,
-                            DosageInstructionText = dto.MedicationRequest.DosageInstructionText,
-                            QuantityValue = dto.MedicationRequest.QuantityValue,
-                            QuantityUnit = dto.MedicationRequest.QuantityUnit,
-                            NumberOfRepeatsAllowed = dto.MedicationRequest.NumberOfRepeatsAllowed,
-                            ExpectedSupplyDurationDays = dto.MedicationRequest.ExpectedSupplyDurationDays,
+                            ServiceCode = dto.Code.Code,
+                            ServiceCodeSystem = dto.Code.System,
+                            ServiceCodeDisplay = dto.Code.Display,
+                            Priority = dto.Priority,
+                            Status = Status.Submitted,
+                            PatientId = dto.PatientId,
+                            PractitionerId = practitioner.Id,
+                            // "{}" rather than "" so the evaluation engine always receives valid JSON
+                            ClinicalData = dto.ClinicalData is not null
+                                ? JsonSerializer.Serialize(dto.ClinicalData)
+                                : "{}",
+                            AuthRuleId = authRule.Id,
+                            CreatedAt = DateTime.UtcNow
                         };
-                    }
 
-                    db.PriorAuthRequests.Add(created);
-                    await db.SaveChangesAsync(ct);
-
-                    db.OutboxMessages.Add(new OutboxMessage
-                    {
-                        MessageType = nameof(PriorAuthSubmittedMessage),
-                        Payload = JsonSerializer.Serialize(new PriorAuthSubmittedMessage
+                        if (dto.MedicationRequest is not null)
                         {
-                            PriorAuthRequestId = created.Id
-                        }),
-                        CorrelationId = Guid.NewGuid().ToString(),
-                        CreatedAt = DateTime.UtcNow
-                    });
-                    await db.SaveChangesAsync(ct);
+                            created.MedicationRequest = new MedicationRequest
+                            {
+                                MedicationCode = dto.MedicationRequest.Medication.Code,
+                                MedicationSystem = dto.MedicationRequest.Medication.System,
+                                MedicationDisplay = dto.MedicationRequest.Medication.Display,
+                                DosageInstructionText = dto.MedicationRequest.DosageInstructionText,
+                                QuantityValue = dto.MedicationRequest.QuantityValue,
+                                QuantityUnit = dto.MedicationRequest.QuantityUnit,
+                                NumberOfRepeatsAllowed = dto.MedicationRequest.NumberOfRepeatsAllowed,
+                                ExpectedSupplyDurationDays = dto.MedicationRequest.ExpectedSupplyDurationDays,
+                            };
+                        }
 
-                    await transaction.CommitAsync(ct);
-                    return created;
-                });
+                        db.PriorAuthRequests.Add(created);
+                        await db.SaveChangesAsync(retryCt);
+
+                        db.OutboxMessages.Add(new OutboxMessage
+                        {
+                            MessageType = nameof(PriorAuthSubmittedMessage),
+                            Payload = JsonSerializer.Serialize(new PriorAuthSubmittedMessage
+                            {
+                                PriorAuthRequestId = created.Id
+                            }),
+                            CorrelationId = correlationId,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                        await db.SaveChangesAsync(retryCt);
+
+                        return created;
+                    },
+                    async verifyCt => await db.OutboxMessages
+                        .AsNoTracking()
+                        .AnyAsync(m => m.CorrelationId == correlationId, verifyCt),
+                    ct);
 
                 await audit.LogAsync(request.Id, AuditEventTypes.RequestCreated, AuditActors.System, new
                 {
