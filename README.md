@@ -11,9 +11,9 @@ This repository is a demo implementation. It is not a substitute for payer polic
 - Generates clinical and medication fields from JSON form definitions stored with each authorization rule.
 - Validates requests in both the React client and the API.
 - Enforces practitioner specialty requirements before accepting a request.
-- Publishes submitted request IDs to Azure Service Bus for asynchronous evaluation.
+- Persists each submitted request and its evaluation message atomically through a transactional outbox, then publishes the request ID to Azure Service Bus asynchronously.
 - Evaluates boolean, numeric, ordered, required-value, and conditional rules.
-- Automatically approves or denies eligible requests.
+- Automatically approves, denies, or requests missing information for eligible requests.
 - Routes configured requests that pass automated evaluation to a reviewer.
 - Records request creation, messaging, evaluation, status transitions, and reviewer decisions in an audit table.
 - Exposes liveness and database health endpoints.
@@ -22,27 +22,30 @@ This repository is a demo implementation. It is not a substitute for payer polic
 
 1. A prescriber selects a patient, service or medication, and indication.
 2. The API finds the active rule for that code and indication, validates the rule-specific fields, checks the prescriber's specialty, and saves the request as `Submitted`.
-3. The API sends the request ID to the `auth-evaluation` Service Bus queue.
-4. An Azure Function loads the request and its rule, runs the authorization engine, and records the result.
-5. A passing request is either set to `Approved` or, when the rule requires human review, `UnderReview`. A failing request is set to `Denied` with its evaluation reasons.
-6. A reviewer can approve or deny an `UnderReview` request. The prescriber dashboard displays the resulting status and denial details.
+3. In one SQL transaction, the API saves the request and an `OutboxMessages` row containing its evaluation message.
+4. A hosted outbox dispatcher publishes pending messages to the `auth-evaluation` Service Bus queue and records delivery attempts.
+5. An Azure Function loads the request and its rule, runs the authorization engine, and records the result.
+6. A passing request is either set to `Approved` or, when the rule requires human review, `UnderReview`. A failing request is set to `Denied`; missing required clinical data produces `NeedsMoreInfo` without a final determination date.
+7. A reviewer can approve or deny an `UnderReview` request. The practitioner-scoped prescriber dashboard displays statuses, denial details, and missing-information reasons.
 
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TD
     Entra[Microsoft Entra ID]
     Web[React portal<br/>Azure Static Web Apps]
     Api[ASP.NET Core API<br/>Azure App Service]
     Sql[(SQL Server / Azure SQL)]
+    Dispatcher[Hosted outbox<br/>dispatcher]
     Bus[[Azure Service Bus<br/>auth-evaluation]]
     Func[.NET isolated<br/>Azure Function]
     Engine[Authorization<br/>rule engine]
 
-    Entra -->|sign-in and access token| Web
-    Web -->|role-protected HTTP| Api
-    Api --> Sql
-    Api -->|request ID| Bus
+    Entra -->|sign-in| Web
+    Web -->|authenticated API calls| Api
+    Api -->|request + outbox<br/>one transaction| Sql
+    Sql -->|pending outbox| Dispatcher
+    Dispatcher --> Bus
     Bus --> Func
     Func --> Engine
     Func --> Sql
@@ -62,6 +65,7 @@ The authorization rule's form definition and evaluation definition live in SQL. 
 | Processing | .NET 9 isolated Azure Functions |
 | Tests | xUnit, FluentAssertions, Moq, ASP.NET Core integration testing |
 | Hosting | Azure Static Web Apps, App Service, Azure Functions |
+| Infrastructure | Bicep, GitHub Actions, Azure OIDC |
 
 ## Repository layout
 
@@ -75,15 +79,16 @@ The authorization rule's form definition and evaluation definition live in SQL. 
 | `PriorAuth.Data/` | EF Core entities, migrations, seeders, and audit service |
 | `PriorAuthApi.Tests/` | API validator and SQL-backed endpoint tests |
 | `PriorAuth.AuthEngine.Tests/` | Unit tests for rule evaluation |
+| `infra/` | Modular Bicep templates and deployment guidance for the Azure stack |
 
 ## Run locally
 
 ### Prerequisites
 
-- [.NET SDK 9.0.103](global.json), or a compatible 9.0 patch SDK
+- [.NET SDK 9.0.315](global.json), or a compatible 9.0 patch SDK
 - Node.js `^20.19.0` or `>=22.12.0`
 - SQL Server, SQL Server LocalDB, or an accessible Azure SQL database
-- An Azure Service Bus namespace with a queue named `auth-evaluation`
+- An Azure Service Bus namespace with a queue named `auth-evaluation` for end-to-end evaluation
 - Azure Functions Core Tools v4
 - Azurite or an Azure Storage account for the Functions host
 - Microsoft Entra app registrations described under [Identity setup](#identity-setup)
@@ -124,7 +129,7 @@ Create the ignored file `PriorAuthApi/appsettings.Development.json`:
 }
 ```
 
-`DefaultConnection` may use LocalDB or Azure SQL instead. Keep connection strings and credentials out of committed configuration.
+`DefaultConnection` may use LocalDB or Azure SQL instead. The API can run without `ServiceBus`; in that case submissions remain safely queued in the outbox until a dispatcher is configured. Keep connection strings and credentials out of committed configuration.
 
 ### 3. Configure the Functions project
 
@@ -292,17 +297,19 @@ npm run lint
 
 ## Deployment
 
-The GitHub Actions workflows deploy on pushes to `main`:
+The application deployment workflows run on pushes to `main`:
 
 - `.github/workflows/ci-cd.yml` builds and tests the .NET solution, applies EF migrations, and deploys the API and Functions projects.
 - `.github/workflows/deploy-frontend.yml` builds the Vite app and deploys `PriorAuthWeb/dist` to Azure Static Web Apps.
 
-The backend workflow uses OIDC for Azure login. Runtime connection strings, Entra settings, Service Bus settings, and Functions storage settings must be configured on their Azure resources; the workflows do not create the infrastructure.
+The infrastructure workflow validates and lints `infra/main.bicep` whenever the templates change. Its manual `workflow_dispatch` action can run an Azure what-if preview or deploy the modular stack: Log Analytics, Application Insights, Service Bus, serverless Azure SQL, App Service, Functions, storage, and Static Web Apps. See [`infra/README.md`](infra/README.md) for parameters and post-deployment steps.
+
+Deployment uses GitHub OIDC for Azure login. Runtime app settings are provisioned by Bicep, while SQL database users for the managed identities and frontend identity configuration remain explicit post-deployment steps.
 
 ## Current limitations
 
-- Saving the request and publishing its Service Bus message are separate operations. A database write can succeed even if message publication fails.
-- The prescriber dashboard endpoint currently returns all prior authorization requests rather than filtering by the current practitioner.
+- The outbox dispatcher does not claim rows, so scaled-out API instances can attempt duplicate delivery. Service Bus duplicate detection and the evaluation worker's status guard make consumers idempotent.
+- Requests in `NeedsMoreInfo` display missing fields, but there is not yet an endpoint to amend and resubmit the existing request.
 - Rules and forms are JSON stored in SQL and are managed through seed data; there is no rule-authoring UI.
 - The demo reset function is intentionally destructive and is not appropriate for a production database.
 
